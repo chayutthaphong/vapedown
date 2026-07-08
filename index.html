@@ -86,26 +86,211 @@
             <button onclick="openMonthly()" class="w-full mt-3 text-[11px] text-gray-400 hover:text-gray-600 font-medium transition">View 28-day monthly review &rarr;</button>
         </div>
 
-        <script>
-            // ... (โค้ด JS ส่วนที่เหลือของคุณ)
-            // หัวใจสำคัญคือการแก้ฟังก์ชัน initApp แบบนี้ครับ:
+        <div class="border-t border-gray-100 pt-5 mt-4">
+            <div class="flex justify-between items-end mb-3">
+                <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Daily Mood (Optional)</p>
+            </div>
+            <div class="flex justify-between px-1" id="moodContainer">
+                <button class="mood-btn text-3xl" onclick="setMood('Awful')" data-mood="Awful">&#128557;</button>
+                <button class="mood-btn text-3xl" onclick="setMood('Bad')" data-mood="Bad">&#128577;</button>
+                <button class="mood-btn text-3xl" onclick="setMood('Neutral')" data-mood="Neutral">&#128528;</button>
+                <button class="mood-btn text-3xl" onclick="setMood('Good')" data-mood="Good">&#128578;</button>
+                <button class="mood-btn text-3xl" onclick="setMood('Great')" data-mood="Great">&#129321;</button>
+            </div>
+        </div>
 
-            function initApp() {
-                let data = getStorage();
-                
-                // --- FIX: เพิ่ม Safety Valve ตรงนี้ ---
-                if (!data.startDate || data.startDate === "NaN" || data.startDate === null) {
-                    data.startDate = todayStr;
-                    saveStorage(data);
-                }
-                // ------------------------------------
+        <div class="pt-2 pb-2">
+            <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-2">Clinical Notes / Triggers</p>
+            <textarea id="dailyNote" rows="2" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700 focus:outline-none focus:border-gray-600 transition" placeholder="Record specific triggers, cravings, or withdrawal symptoms..."></textarea>
+        </div>
 
-                fetchFromSheets().then(function(){
-                    renderFromState();
-                });
-            }
-            // ... (ส่วนที่เหลือของ JS เดิม)
-        </script>
+        <div class="flex items-center justify-center gap-1.5 text-[11px] text-gray-400 font-light pt-4 border-t border-gray-50">
+            <span class="w-2 h-2 rounded-full bg-green-500" id="syncDot"></span>
+            <span id="syncStatus">Ready</span>
+        </div>
+
+        <div class="border-t border-gray-100 pt-5 mt-4">
+            <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-3">Program Length (quit within)</p>
+            <div class="grid grid-cols-3 gap-2" id="durationSelector">
+                <button data-weeks="4" class="dur-btn py-2 rounded-xl text-sm font-medium border transition relative">4 weeks</button>
+                <button data-weeks="6" class="dur-btn py-2 rounded-xl text-sm font-medium border transition">6 weeks</button>
+                <button data-weeks="8" class="dur-btn py-2 rounded-xl text-sm font-medium border transition">8 weeks</button>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-100 pt-5 mt-4">
+            <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-3" id="planTitle">Taper Plan (your ceiling)</p>
+            <div id="planTable" class="space-y-1"></div>
+        </div>
+
     </div>
+
+    <div id="assessModal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm hidden flex-col items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-xl p-6 space-y-5 max-h-[90vh] overflow-y-auto">
+            <div class="text-center border-b border-gray-100 pb-4">
+                <h2 class="text-xl font-medium text-gray-900" id="assessTitle">Assessment</h2>
+                <div class="flex justify-center gap-1.5 mt-3">
+                    <div class="step-dot active" id="dot1"></div>
+                    <div class="step-dot" id="dot2"></div>
+                </div>
+            </div>
+            <form id="ftndForm" class="space-y-5">
+                <div><label class="block text-sm font-medium text-gray-700 mb-2">How soon after you wake up do you vape?</label>
+                <select id="f1" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2"><option value="3">Within 5 mins</option><option value="2">6-30 mins</option><option value="1">31-60 mins</option><option value="0">After 60 mins</option></select></div>
+                <button type="button" onclick="nextToECDI()" class="w-full bg-gray-900 text-white py-3 rounded-xl">Next &rarr;</button>
+            </form>
+            <form id="ecdiForm" class="space-y-5 hidden">
+                <div><label class="block text-sm font-medium text-gray-700 mb-2">Sessions per day?</label>
+                <select id="e1" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2"><option value="5">30+</option><option value="0">0-4</option></select></div>
+                <button type="button" onclick="submitAssessment()" class="w-full bg-blue-600 text-white py-3 rounded-xl">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxIYaNvnUunRzFh2giTfkT7yNaZrJkAwlyzAmdThDhzMCqhCL0JZS2lvyrtbv3WXE4esQ/exec";
+        const STORAGE_KEY = 'clinical_vape_tracker_v4';
+        const todayStr = new Date().toLocaleDateString('en-CA');
+
+        let currentTarget = 0, currentWeek = 1, currentFTND = 0, currentECDI = 0, programWeeks = 6;
+        let chartInstance = null;
+
+        function getStorage() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : { startDate: todayStr, history: {}, assessments: {}, moodHistory: {}, notesHistory: {}, programWeeks: 6 };
+        }
+        function saveStorage(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+        function initApp() {
+            let data = getStorage();
+            
+            // --- FIX NaN: Force valid startDate ---
+            if (!data.startDate || data.startDate === "NaN") {
+                data.startDate = todayStr;
+                saveStorage(data);
+            }
+
+            // Render UI immediately from local data
+            renderFromState();
+
+            // Then try to fetch fresh data from cloud
+            fetchFromSheets().then(() => renderFromState());
+        }
+
+        function renderFromState() {
+            let data = getStorage();
+            const start = new Date(data.startDate + "T00:00:00");
+            const now = new Date(todayStr + "T00:00:00");
+            const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+            
+            programWeeks = data.programWeeks || 6;
+            currentWeek = Math.max(1, Math.floor(diffDays / 7) + 1);
+            document.getElementById('weekDisplay').innerText = `Week ${currentWeek} / ${programWeeks}`;
+
+            const assessKey = Math.floor(diffDays / 7) * 7;
+            if (data.assessments[assessKey] === undefined) {
+                openAssessment();
+            } else {
+                currentFTND = data.assessments[assessKey].ftnd;
+                currentECDI = data.assessments[assessKey].ecdi;
+                calculateDynamicTarget();
+                refreshUI();
+            }
+        }
+
+        function calculateDynamicTarget() {
+            const ftndBase = currentFTND >= 6 ? 100 : (currentFTND >= 4 ? 70 : 40);
+            const ecdiBase = currentECDI >= 13 ? 130 : (currentECDI >= 9 ? 100 : 40);
+            const baseTarget = Math.max(ftndBase, ecdiBase);
+
+            const frac = 1 - (currentWeek - 1) / (programWeeks - 1);
+            currentTarget = Math.max(0, Math.ceil(baseTarget * Math.max(0, frac)));
+            if (currentWeek >= programWeeks) currentTarget = 0;
+            
+            document.getElementById('dailyTargetDisplay').innerText = currentTarget || 0;
+            document.getElementById('ftndScoreDisplay').innerText = `(${currentFTND}/10)`;
+            document.getElementById('ecdiScoreDisplay').innerText = `(${currentECDI}/20)`;
+        }
+
+        function refreshUI() {
+            let data = getStorage();
+            document.getElementById('currentPuffs').innerText = data.history[todayStr] || 0;
+            updateChart(data);
+        }
+
+        function openAssessment() {
+            document.getElementById('assessModal').classList.remove('hidden');
+            document.getElementById('assessModal').classList.add('flex');
+        }
+
+        function nextToECDI() {
+            document.getElementById('ftndForm').classList.add('hidden');
+            document.getElementById('ecdiForm').classList.remove('hidden');
+        }
+
+        function submitAssessment() {
+            const ftnd = parseInt(document.getElementById('f1').value); // Simplied for demo
+            const ecdi = parseInt(document.getElementById('e1').value);
+            let data = getStorage();
+            const diffDays = Math.floor((new Date(todayStr) - new Date(data.startDate)) / 86400000);
+            const key = Math.floor(diffDays / 7) * 7;
+            data.assessments[key] = { ftnd, ecdi, date: todayStr };
+            saveStorage(data);
+            document.getElementById('assessModal').classList.add('hidden');
+            renderFromState();
+        }
+
+        async function fetchFromSheets() {
+            const s = document.getElementById('syncStatus');
+            s.innerText = "Loading...";
+            try {
+                const r = await fetch(GAS_URL + "?t=" + Date.now());
+                const remote = await r.json();
+                let data = getStorage();
+                if (remote.logs) {
+                    remote.logs.forEach(l => { data.history[l.date] = (data.history[l.date] || 0) + 1; });
+                }
+                if (remote.assessments) data.assessments = remote.assessments;
+                saveStorage(data);
+                s.innerText = "Synced";
+            } catch (e) { s.innerText = "Offline Mode"; }
+        }
+
+        function updateChart(data) {
+            const ctx = document.getElementById('analyticsChart').getContext('2d');
+            const dates = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(); d.setDate(d.getDate() - i);
+                dates.push(d.toLocaleDateString('en-CA'));
+            }
+            const actualData = dates.map(d => data.history[d] || 0);
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dates.map(d => new Date(d).toLocaleDateString('en-US', {weekday:'short'})),
+                    datasets: [{ data: actualData, backgroundColor: '#111827', borderRadius: 4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        // Action: Log Puff
+        document.getElementById('logBtn').onclick = function() {
+            let data = getStorage();
+            data.history[todayStr] = (data.history[todayStr] || 0) + 1;
+            saveStorage(data);
+            refreshUI();
+            fetch(GAS_URL, { method: 'POST', body: new URLSearchParams({ action: 'log', date: todayStr }), mode: 'no-cors' });
+        };
+
+        // Live Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('liveClock').innerText = now.toLocaleString();
+        }, 1000);
+
+        initApp();
+    </script>
 </body>
 </html>
