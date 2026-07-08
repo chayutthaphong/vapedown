@@ -1,69 +1,72 @@
-# Step Down: Vape Tapering Tracker
+# Step Down: Clinical Tapering Protocol & Longitudinal Tracker
 
-A minimalist, web-based tracking application designed to help users systematically taper their electronic nicotine delivery systems (ENDS) usage. Built with a focus on cognitive behavioral principles, this tool provides a structured 8-week protocol for reducing nicotine dependence, specifically modeled for closed-system devices (e.g., 3% or 30mg/mL nicotine).
+A robust, web-based clinical tracking application designed to systematically monitor and manage Electronic Nicotine Delivery Systems (ENDS) tapering. This tool utilizes Cognitive Behavioral Therapy (CBT) principles and dynamic benchmarking to provide a structured 8-week step-down protocol, complete with automated data synchronization for longitudinal statistical analysis.
 
-## 🌟 Features
+## 🌟 Core Clinical Features
 
-*   **Clinical Tapering Strategy:** Integrated 8-week step-down protocol utilizing interval extension, puff limitation, and trigger decoupling.
-*   **Minimalist Interface:** Clean, distraction-free UI built with Tailwind CSS to keep the focus on behavioral control.
-*   **Dynamic Analytics:** Real-time 7-day historical data visualization (via Chart.js) comparing actual usage against daily benchmarks.
-*   **Cloud Synchronization:** Automated backend logging to Google Sheets via Google Apps Script for secure, long-term data retention and personalized analysis.
-*   **Adaptive Feedback:** Contextual motivational messaging based on daily progress and benchmark limits.
+*   **Automated FTND-V Assessment:** Integrates a vaping-adapted Fagerström Test for Nicotine Dependence (FTND-V) at the beginning of each week to evaluate physiological dependence.
+*   **Dynamic Tapering Algorithm:** Automatically calculates and adjusts daily puff benchmarks based on the user's weekly FTND-V score (High, Moderate, Low dependence).
+*   **Independent Mood Tracking:** Allows for daily affective state logging using visual indicators (emojis), completely independent of vaping events, ensuring continuous psychological monitoring even during the abstinence phase (Week 8+).
+*   **Relapse Management & Tracking:** Automatically switches to a "Relapse" protocol once the daily target reaches zero, distinctively tagging post-abstinence usage for accurate survival analysis.
+*   **Cloud Data Synchronization:** Seamlessly logs multivariate data points directly into Google Sheets in real-time, creating a clean, structured dataset ready for advanced statistical evaluation.
 
-## 🧠 Protocol Basis
+## 📊 Dataset Structure (Google Sheets)
 
-Because dilution is impossible in pre-filled disposable pods, this application relies on modifying user behavior to systematically reduce plasma nicotine concentration and manage withdrawal symptoms. The protocol is divided into four distinct phases:
+To utilize the automated cloud backup, set up a Google Sheet with the following headers in Row 1 (Columns A through H):
 
-1.  **Weeks 1-2 (Baseline & Interval Extension):** Establishing a baseline and delaying the first puff of the day.
-2.  **Weeks 3-4 (Dose & Frequency Decoupling):** Extending intervals between sessions and limiting puffs per session.
-3.  **Weeks 5-6 (Strict Scheduled Dosing):** Restricting usage to specific, predetermined times (e.g., post-meal) to break automatic behavioral triggers.
-4.  **Weeks 7-8 (SOS Mode to Zero):** Extreme limitation reserved only for severe cravings, culminating in a complete cessation date.
+| Column | Header | Description |
+| :--- | :--- | :--- |
+| A | `Date` | Local date of the logged event (YYYY-MM-DD). |
+| B | `Time` | Local time of the logged event (HH:MM:SS). |
+| C | `Puff Count` | Cumulative number of puffs taken on that specific date. |
+| D | `Daily Target` | The dynamically calculated benchmark for the day. |
+| E | `Status` | Adherence status (`On Track`, `Over Limit`, or `Relapse`). |
+| F | `Week` | The current active week of the 8-week protocol. |
+| G | `FTND Score` | The most recent Fagerström score (0-10). |
+| H | `Mood` | The self-reported affective state (`Awful`, `Bad`, `Neutral`, `Good`, `Great`). |
 
-## 🚀 Getting Started
+## 🚀 Deployment Guide
 
-### Prerequisites
-*   A modern web browser (Safari, Chrome, etc.)
-*   A Google account (for setting up the Google Sheets database)
+### 1. Backend Setup (Google Apps Script)
+1. Create a new Google Sheet matching the structure above.
+2. Navigate to **Extensions > Apps Script**.
+3. Deploy the following script as a **Web App** (Access: Anyone):
 
-### Installation & Setup
+```javascript
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  
+  var date = e.parameter.date;
+  var time = e.parameter.time;
+  var count = e.parameter.count;
+  var target = e.parameter.target;
+  var status = e.parameter.status;
+  var week = e.parameter.week || "-";
+  var ftnd = e.parameter.ftnd || "-";
+  var mood = e.parameter.mood || "Not Recorded";
+  
+  sheet.appendRow([date, time, count, target, status, week, ftnd, mood]);
+  
+  return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
+}
+```
 
-1.  **Clone or Fork the Repository:**
-    Copy the `index.html` file to your own environment or host it directly via [GitHub Pages](https://pages.github.com/).
+### 2. Frontend Setup
+1. Copy the provided `index.html` file into your repository.
+2. Locate the configuration section in the script (around line 260):
+   `const GAS_URL = "YOUR_WEB_APP_URL_HERE";`
+3. Replace the placeholder with your active Google Apps Script Web App URL.
+4. Host the file via **GitHub Pages** (or any static hosting service).
+5. Open the hosted URL on a mobile device and select **"Add to Home Screen"** for optimal UI rendering.
 
-2.  **Set Up the Google Sheets Database:**
-    *   Create a new Google Sheet.
-    *   Name the columns in Row 1: `Date`, `Time`, `Puff Count`, `Daily Target`, and `Status`.
-    *   Navigate to **Extensions > Apps Script** and deploy the following backend script as a Web App:
+## 🧠 Clinical Rationale & References
 
-    ```javascript
-    function doPost(e) {
-      var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-      var date = e.parameter.date;
-      var time = e.parameter.time;
-      var count = e.parameter.count;
-      var target = e.parameter.target;
-      var status = e.parameter.status;
-      
-      sheet.appendRow([date, time, count, target, status]);
-      return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
-    }
-    ```
+This protocol operates on the premise that pre-filled closed-system devices (e.g., 3% or 30mg/mL Nicotine) cannot be diluted. Therefore, dependence reduction relies strictly on modifying behavioral frequency, extending inter-puff intervals, and decoupling environmental triggers based on established CBT methodologies.
 
-3.  **Connect the App:**
-    *   Copy the Web App URL generated from the Apps Script deployment.
-    *   Open `index.html` and replace `YOUR_WEB_APP_URL_HERE` with your actual URL.
-    *   Save and commit the changes.
-
-4.  **Mobile Usage:**
-    For the best experience, open the hosted URL in your mobile browser and select **"Add to Home Screen"** to use it as a native web app.
+*   Fagerström, K. (2012). Determinants of tobacco use and renaming the FTND to the Fagerström Test for Cigarette Dependence. *Tobacco Control*, 21(1), 9-14.
+*   Foulds, J., Veldheer, S., Yingst, J., Hrabovsky, S., Wilson, S. J., Nichols, T. T., & Eissenberg, T. (2015). Development of a questionnaire for assessing dependence on electronic cigarettes among a large sample of ex-smoking E-cigarette users. *Nicotine & Tobacco Research*, 17(2), 186-192.
+*   Truth Initiative. (2021). *Actionable strategies for e-cigarette cessation: Tapering and behavioral modification*.
 
 ## ⚠️ Disclaimer
 
-This application provides a structural framework for nicotine tapering and is intended for personal tracking and data collection. It does not constitute formal medical advice, diagnosis, or behavioral therapy. Users should consult healthcare professionals for personalized medical guidance regarding smoking cessation.
-
-## 📚 References
-
-The methodologies implemented in this tracker are inspired by behavioral cessation strategies documented in:
-*   Lindson, N., et al. (2019). Gradual versus abrupt quitting for smokers. *Cochrane Database of Systematic Reviews*.
-*   Truth Initiative. (2021). Actionable strategies for e-cigarette cessation: Tapering and behavioral modification.
-*   Foulds, J., et al. (2022). Effect of electronic nicotine delivery systems on quitting. *JAMA Network Open*.
+This software is provided as a data collection and structural tracking tool. It does not constitute diagnostic, psychiatric, or formal medical advice.
