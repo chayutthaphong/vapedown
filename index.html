@@ -1,0 +1,340 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2685.5">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; -webkit-text-stroke: #000000}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; -webkit-text-stroke: #000000; min-height: 14.0px}
+    span.s1 {font-kerning: none}
+  </style>
+</head>
+<body>
+<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
+<p class="p1"><span class="s1">&lt;html lang="en"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;head&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;title&gt;Step Down - Vape Tracker&lt;/title&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.jsdelivr.net/npm/chart.js"&gt;&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;style&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>body {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>background-color: #fafafa;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>::-webkit-scrollbar {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>width: 4px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>::-webkit-scrollbar-thumb {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>background: #e5e7eb;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>border-radius: 4px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
+<p class="p1"><span class="s1">&lt;body class="flex flex-col items-center justify-start min-h-screen p-4 sm:p-6 text-gray-900 antialiased"&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="w-full max-w-md bg-white rounded-3xl shadow-sm border border-gray-100 p-6 space-y-6 my-4"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="text-center"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;h1 class="text-3xl font-extralight tracking-tight text-gray-900"&gt;Step Down&lt;/h1&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p class="text-xs text-gray-400 mt-1 tracking-wider uppercase"&gt;Nicotine Tapering Protocol (8-Week)&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="bg-gray-50 rounded-2xl p-4 border border-gray-100"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;details class="group"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;summary class="flex justify-between items-center font-medium text-sm text-gray-600 cursor-pointer list-none"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;span&gt;Clinical Tapering Strategy (3% Nicotine)&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;span class="transition group-open:rotate-180"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"&gt;&lt;/path&gt;&lt;/svg&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/summary&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div class="mt-3 text-xs text-gray-500 space-y-2 border-t border-gray-200/60 pt-2 transition-all duration-300"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;div class="flex justify-between border-b border-gray-100 pb-1"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;span class="font-medium text-gray-700"&gt;W1-2: Baseline &amp; Interval Extension&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;span class="text-right"&gt;Delay first puff by 1 hr&lt;br&gt;Set 20 puffs/day&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;div class="flex justify-between border-b border-gray-100 pb-1"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;span class="font-medium text-gray-700"&gt;W3-4: Dose &amp; Frequency Decoupling&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;span class="text-right"&gt;Extend intervals to 3 hrs&lt;br&gt;Max 10-15 puffs/day&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;div class="flex justify-between border-b border-gray-100 pb-1"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;span class="font-medium text-gray-700"&gt;W5-6: Strict Scheduled Dosing&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;span class="text-right"&gt;Post-meal only (Max 2 puffs/session)&lt;br&gt;Max 5 puffs/day&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;div class="flex justify-between"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;span class="font-medium text-gray-700"&gt;W7-8: SOS Mode to Zero&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;span class="text-right"&gt;Absolute cravings only&lt;br&gt;Target 0-2 puffs/day&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/details&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="grid grid-cols-2 gap-4"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="flex flex-col"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;label class="text-[10px] uppercase tracking-wider text-gray-400 mb-1 font-medium"&gt;Log Date&lt;/label&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;input type="date" id="datePicker" class="text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-gray-400 text-gray-700"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="flex flex-col"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;label class="text-[10px] uppercase tracking-wider text-gray-400 mb-1 font-medium"&gt;Daily Target&lt;/label&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;select id="targetSelect" class="text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-gray-400 text-gray-700"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;option value="20"&gt;20 Puffs (W1-2)&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;option value="15"&gt;15 Puffs (W3)&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;option value="10" selected&gt;10 Puffs (W4)&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;option value="5"&gt;5 Puffs (W5-6)&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;option value="2"&gt;2 Puffs (W7-8)&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;option value="0"&gt;0 Puffs (Zero Date)&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/select&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="text-center bg-gray-50/50 border border-gray-100 rounded-2xl py-6 relative"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p class="text-xs text-gray-400 uppercase tracking-widest mb-1 font-medium"&gt;Today's Progress&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="flex items-baseline justify-center gap-1"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;span id="currentPuffs" class="text-6xl font-extralight tracking-tighter text-gray-900"&gt;0&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;span class="text-xl text-gray-300 font-light"&gt;/&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;span id="dailyTargetDisplay" class="text-xl text-gray-400 font-light"&gt;10&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p id="motivationMsg" class="text-xs text-gray-500 mt-3 px-4 font-light h-4"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>Stay mindful. Delay the next puff if possible.</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button id="logBtn" class="w-full bg-gray-900 text-white py-4 rounded-2xl text-md font-medium tracking-wide shadow-sm hover:bg-gray-800 active:scale-[0.98] transition duration-150 ease-in-out"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>Log 1 Puff</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/button&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="pt-2"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p class="text-[10px] uppercase tracking-wider text-gray-400 mb-3 font-medium text-center"&gt;7-Day Analytics (vs Benchmark)&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="h-40 w-full"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;canvas id="analyticsChart"&gt;&lt;/canvas&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="flex items-center justify-center gap-1.5 text-[11px] text-gray-400 font-light pt-2 border-t border-gray-50"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;span class="w-2 h-2 rounded-full bg-green-500 animate-pulse" id="syncDot"&gt;&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;span id="syncStatus"&gt;Auto-syncing to Google Sheets enabled&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="mt-6"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;details class="group"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;summary class="flex justify-center items-center text-[10px] text-gray-400 cursor-pointer list-none uppercase tracking-wider"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;span class="border-b border-gray-300 border-dashed pb-0.5 hover:text-gray-600 transition"&gt;Disclaimer &amp; References&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/summary&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div class="mt-3 text-[10px] text-gray-400 leading-relaxed space-y-2 bg-gray-50 p-3 rounded-xl border border-gray-100"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; This application provides a structural framework for nicotine tapering and is intended for personal tracking. It does not constitute formal medical advice or behavioral therapy.&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;p&gt;&lt;strong&gt;Protocol Basis:&lt;/strong&gt; The 8-week step-down schedule is modeled for closed-system 3% (30mg/mL) electronic nicotine delivery systems (ENDS). Because dilution is impossible, the protocol utilizes interval extension, puff limitation, and trigger decoupling (Cognitive Behavioral principles) to systematically reduce plasma nicotine concentration and manage withdrawal symptoms.&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;ul class="list-disc pl-4 space-y-1"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;li&gt;Lindson, N., et al. (2019). Gradual versus abrupt quitting for smokers. &lt;em&gt;Cochrane Database of Systematic Reviews&lt;/em&gt;.&lt;/li&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;li&gt;Truth Initiative. (2021). &lt;em&gt;Actionable strategies for e-cigarette cessation: Tapering and behavioral modification&lt;/em&gt;.&lt;/li&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;li&gt;Foulds, J., et al. (2022). Effect of electronic nicotine delivery systems on quitting. &lt;em&gt;JAMA Network Open&lt;/em&gt;.&lt;/li&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/ul&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/details&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;script&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// ==========================================</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// CONFIGURATION: PASTE YOUR WEB APP URL HERE</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// ==========================================</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const GAS_URL = "https://script.google.com/macros/s/AKfycbzlhn9cGOixGFZip6BGwXeYpL9M1DU5I920DxELbgp3h7S3myPQVJvsx10xcQhpe5P-RQ/exec";<span class="Apple-converted-space"> </span></span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Local State Management</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let currentTarget = 10;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let chartInstance = null;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Initialize elements</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const datePicker = document.getElementById('datePicker');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const targetSelect = document.getElementById('targetSelect');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const currentPuffsText = document.getElementById('currentPuffs');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const dailyTargetDisplay = document.getElementById('dailyTargetDisplay');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const motivationMsg = document.getElementById('motivationMsg');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const logBtn = document.getElementById('logBtn');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const syncStatus = document.getElementById('syncStatus');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const syncDot = document.getElementById('syncDot');</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Set default date to today (Local Time)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const todayStr = new Date().toISOString().split('T')[0];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>datePicker.value = todayStr;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Load data from LocalStorage</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function getLogHistory() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const history = localStorage.getItem('vape_log_history_v2');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>return history ? JSON.parse(history) : {};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function saveLogHistory(history) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>localStorage.setItem('vape_log_history_v2', JSON.stringify(history));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// UI Refresh Logic</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function refreshUI() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const selectedDate = datePicker.value;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const history = getLogHistory();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const todayCount = history[selectedDate] || 0;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>currentTarget = parseInt(targetSelect.value);</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>currentPuffsText.innerText = todayCount;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>dailyTargetDisplay.innerText = currentTarget;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Motivation &amp; Feedback Logic</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (todayCount === 0) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>motivationMsg.innerText = "A fresh start. Keep your focus sharp today.";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>motivationMsg.className = "text-xs text-gray-500 mt-3 px-4 font-light h-4";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>} else if (todayCount &lt; currentTarget / 2) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>motivationMsg.innerText = "Excellent control. Pacing is highly disciplined.";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>motivationMsg.className = "text-xs text-gray-600 mt-3 px-4 font-medium h-4";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>} else if (todayCount &lt; currentTarget) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>motivationMsg.innerText = `${currentTarget - todayCount} puffs remaining. Practice delay tactics.`;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>motivationMsg.className = "text-xs text-amber-600 mt-3 px-4 font-medium h-4";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>} else if (todayCount === currentTarget) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>motivationMsg.innerText = "Benchmark reached. Stop here to secure today's win.";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>motivationMsg.className = "text-xs text-green-600 mt-3 px-4 font-semibold h-4";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>} else {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>motivationMsg.innerText = `Over limit by ${todayCount - currentTarget}. Reset your rhythm tomorrow.`;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>motivationMsg.className = "text-xs text-red-500 mt-3 px-4 font-medium h-4";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>updateChart();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Get past 7 days dates array for chart</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function getLast7Days() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const dates = [];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>for (let i = 6; i &gt;= 0; i--) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const d = new Date();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>d.setDate(d.getDate() - i);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>dates.push(d.toISOString().split('T')[0]);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>return dates;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Format date string</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function formatMinDate(dateStr) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const options = { month: 'short', day: 'numeric' };</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>return new Date(dateStr).toLocaleDateString('en-US', options);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Chart.js Rendering Logic</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function updateChart() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const ctx = document.getElementById('analyticsChart').getContext('2d');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const last7Days = getLast7Days();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const history = getLogHistory();</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const actualData = last7Days.map(date =&gt; history[date] || 0);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const benchmarkData = last7Days.map(() =&gt; parseInt(targetSelect.value));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const labels = last7Days.map(date =&gt; formatMinDate(date));</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (chartInstance) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>chartInstance.destroy();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>chartInstance = new Chart(ctx, {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>type: 'bar',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>data: {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>labels: labels,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>datasets: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>label: 'Actual Puffs',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>data: actualData,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>backgroundColor: '#111827',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>borderRadius: 4,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>barPercentage: 0.4,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>order: 2</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>label: 'Benchmark Line',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>data: benchmarkData,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>type: 'line',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>borderColor: '#9ca3af',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>borderWidth: 1.5,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>borderDash: [3, 3],</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>pointRadius: 0,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>fill: false,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>order: 1</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>options: {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>responsive: true,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>maintainAspectRatio: false,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>plugins: {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>legend: { display: false }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>scales: {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>x: {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>grid: { display: false },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>ticks: { font: { size: 9 }, color: '#9ca3af' }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>y: {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>grid: { color: '#f9fafb' },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>ticks: { beginAtZero: true, font: { size: 9 }, color: '#9ca3af', stepSize: 5 }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Event Listeners</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>datePicker.addEventListener('change', refreshUI);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>targetSelect.addEventListener('change', refreshUI);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>logBtn.addEventListener('click', () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const selectedDate = datePicker.value;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const history = getLogHistory();</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Increment</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>history[selectedDate] = (history[selectedDate] || 0) + 1;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>saveLogHistory(history);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>refreshUI();</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Real-time timestamp</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const now = new Date();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const timeStr = now.toTimeString().split(' ')[0];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const currentStatus = (history[selectedDate] &lt;= currentTarget) ? "On Track" : "Over Limit";</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Sync UI</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>syncStatus.innerText = "Syncing to Google Sheets...";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>syncDot.className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse";</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (GAS_URL === "YOUR_WEB_APP_URL_HERE") {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>console.warn("GAS URL not configured.");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>syncStatus.innerText = "Saved locally. (GAS URL missing)";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>syncDot.className = "w-2 h-2 rounded-full bg-gray-400";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>return;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const formData = new URLSearchParams();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>formData.append('date', selectedDate);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>formData.append('time', timeStr);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>formData.append('count', 1);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>formData.append('target', currentTarget);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>formData.append('status', currentStatus);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>fetch(GAS_URL, {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>method: 'POST',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>body: formData,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>mode: 'no-cors'</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>})</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>.then(() =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>syncStatus.innerText = "Cloud backup complete";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>syncDot.className = "w-2 h-2 rounded-full bg-green-500";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>})</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>.catch(err =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>console.error("Sync failed:", err);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>syncStatus.innerText = "Sync failed. Will retry next puff.";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>syncDot.className = "w-2 h-2 rounded-full bg-red-500";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>});</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Initialize</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>refreshUI();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
+</body>
+</html>
