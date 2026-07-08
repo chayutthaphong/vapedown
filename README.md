@@ -36,14 +36,70 @@ To utilize the automated cloud backup, set up a Google Sheet with the following 
 3. Deploy the following script as a **Web App** (Access: Anyone):
 
 ```javascript
+var SHEET_LOGS = 'logs';
+var SHEET_ASSESS = 'assessments';
+var SHEET_CONFIG = 'config';
+var SHEET_META = 'meta';
+
+function _ss() { return SpreadsheetApp.getActiveSpreadsheet(); }
+
+function _getOrCreateSheet(name, headers) {
+  var ss = _ss();
+  var sh = ss.getSheetByName(name);
+  if (!sh) {
+    sh = ss.insertSheet(name);
+    sh.appendRow(headers);
+  }
+  return sh;
+}
+
+function _ensureSheets() {
+  _getOrCreateSheet(SHEET_LOGS, ['timestamp', 'date']);
+  _getOrCreateSheet(SHEET_ASSESS, ['assessKey', 'ftnd', 'ecdi', 'date']);
+  _getOrCreateSheet(SHEET_CONFIG, ['key', 'value']);
+  _getOrCreateSheet(SHEET_META, ['date', 'mood', 'note']);
+}
+
+function doGet(e) {
+  _ensureSheets();
+  var out = { logs: [], assessments: {}, config: {}, mood: {}, notes: {} };
+  
+  var shLogs = _ss().getSheetByName(SHEET_LOGS).getDataRange().getValues();
+  for (var i = 1; i < shLogs.length; i++) out.logs.push({ ts: String(shLogs[i][0]), date: String(shLogs[i][1]) });
+
+  var shA = _ss().getSheetByName(SHEET_ASSESS).getDataRange().getValues();
+  for (var j = 1; j < shA.length; j++) out.assessments[String(shA[j][0])] = { ftnd: shA[j][1], ecdi: shA[j][2], date: String(shA[j][3]) };
+
+  var shC = _ss().getSheetByName(SHEET_CONFIG).getDataRange().getValues();
+  for (var k = 1; k < shC.length; k++) out.config[String(shC[k][0])] = String(shC[k][1]);
+
+  var shM = _ss().getSheetByName(SHEET_META).getDataRange().getValues();
+  for (var m = 1; m < shM.length; m++) {
+    out.mood[String(shM[m][0])] = String(shM[m][1]);
+    out.notes[String(shM[m][0])] = String(shM[m][2]);
+  }
+
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+
 function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  sheet.appendRow([
-    e.parameter.date, e.parameter.time, e.parameter.count, 
-    e.parameter.target, e.parameter.status, e.parameter.week, 
-    e.parameter.ftnd, e.parameter.mood, e.parameter.note
-  ]);
-  return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
+  _ensureSheets();
+  var p = e.parameter;
+  var action = p.action;
+  
+  try {
+    if (action === 'log') _ss().getSheetByName(SHEET_LOGS).appendRow([p.ts, p.date]);
+    else if (action === 'undo') {
+      var sh = _ss().getSheetByName(SHEET_LOGS);
+      var vals = sh.getDataRange().getValues();
+      for (var i = vals.length - 1; i >= 1; i--) {
+        if (String(vals[i][1]) === String(p.date)) { sh.deleteRow(i + 1); break; }
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({status: 'success'})).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({status: 'error', message: err.toString()})).setMimeType(ContentService.MimeType.JSON);
+  }
 }
 ```
 
@@ -57,9 +113,12 @@ function doPost(e) {
 
 This protocol operates on the premise that pre-filled closed-system devices cannot be diluted. Therefore, dependence reduction relies strictly on modifying behavioral frequency, interval extension, and trigger decoupling.
 
-* Fagerström, K. (2012). Determinants of tobacco use and renaming the FTND to the Fagerström Test for Cigarette Dependence. *Tobacco Control*, 21(1), 9-14.
-* Foulds, J., et al. (2015). Development of a questionnaire for assessing dependence on electronic cigarettes. *Nicotine & Tobacco Research*, 17(2), 186-192.
-* Truth Initiative. (2021). *Actionable strategies for e-cigarette cessation: Tapering and behavioral modification*.
+Heatherton TF, et al. The Fagerström Test for Nicotine Dependence: a revision of the Fagerström Tolerance Questionnaire. Br J Addict. 1991.
+Foulds J, et al. Development of a questionnaire for assessing dependence on electronic cigarettes. Nicotine Tob Res. 2015.
+Tillery A, et al. Characterization of e-cigarette users according to device type, use behaviors... Tob Induc Dis. 2023.
+Lindson N, et al. Smoking reduction interventions for smoking cessation. Cochrane Database Syst Rev. 2019.
+US Preventive Services Task Force. Interventions for tobacco smoking cessation in adults. JAMA. 2021.
+Batra A, et al. S3 guideline "Smoking and tobacco dependence: screening, diagnosis, and treatment". Eur Addict Res. 2022..
 
 ## ⚠️ Disclaimer
 
