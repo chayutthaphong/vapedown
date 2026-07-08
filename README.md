@@ -4,15 +4,17 @@ A robust, web-based clinical tracking application designed to systematically mon
 
 ## 🌟 Core Clinical Features
 
-*   **Automated FTND-V Assessment:** Integrates a vaping-adapted Fagerström Test for Nicotine Dependence (FTND-V) at the beginning of each week to evaluate physiological dependence.
+*   **Mandatory FTND-V Assessment:** Integrates a vaping-adapted Fagerström Test for Nicotine Dependence (FTND-V) at the beginning of each week. The system strictly requires this assessment to recalibrate the protocol.
 *   **Dynamic Tapering Algorithm:** Automatically calculates and adjusts daily puff benchmarks based on the user's weekly FTND-V score (High, Moderate, Low dependence).
-*   **Independent Mood Tracking:** Allows for daily affective state logging using visual indicators (emojis), completely independent of vaping events, ensuring continuous psychological monitoring even during the abstinence phase (Week 8+).
-*   **Relapse Management & Tracking:** Automatically switches to a "Relapse" protocol once the daily target reaches zero, distinctively tagging post-abstinence usage for accurate survival analysis.
+*   **Required Mood Tracking:** Enforces daily affective state logging. Users must record their mood using visual indicators before the system unlocks the ability to log vaping events, ensuring zero missing data points for psychological monitoring.
+*   **Contextual Clinical Notes:** Features a dedicated text input for users to qualitatively record daily triggers, cravings, or withdrawal symptoms.
+*   **Weekly Adherence Feedback:** Automatically generates a comprehensive end-of-week summary, reviewing total puff counts against benchmarks and providing structured feedback for the upcoming phase.
+*   **Relapse Management:** Automatically switches to a "Relapse" protocol once the daily target reaches zero, distinctively tagging post-abstinence usage for accurate survival analysis.
 *   **Cloud Data Synchronization:** Seamlessly logs multivariate data points directly into Google Sheets in real-time, creating a clean, structured dataset ready for advanced statistical evaluation.
 
 ## 📊 Dataset Structure (Google Sheets)
 
-To utilize the automated cloud backup, set up a Google Sheet with the following headers in Row 1 (Columns A through H):
+To utilize the automated cloud backup, set up a Google Sheet with the following headers in Row 1 (Columns A through I):
 
 | Column | Header | Description |
 | :--- | :--- | :--- |
@@ -24,6 +26,7 @@ To utilize the automated cloud backup, set up a Google Sheet with the following 
 | F | `Week` | The current active week of the 8-week protocol. |
 | G | `FTND Score` | The most recent Fagerström score (0-10). |
 | H | `Mood` | The self-reported affective state (`Awful`, `Bad`, `Neutral`, `Good`, `Great`). |
+| I | `Notes` | Qualitative data regarding triggers, cravings, or context. |
 
 ## 🚀 Deployment Guide
 
@@ -44,8 +47,9 @@ function doPost(e) {
   var week = e.parameter.week || "-";
   var ftnd = e.parameter.ftnd || "-";
   var mood = e.parameter.mood || "Not Recorded";
+  var note = e.parameter.note || "";
   
-  sheet.appendRow([date, time, count, target, status, week, ftnd, mood]);
+  sheet.appendRow([date, time, count, target, status, week, ftnd, mood, note]);
   
   return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
 }
@@ -53,7 +57,7 @@ function doPost(e) {
 
 ### 2. Frontend Setup
 1. Copy the provided `index.html` file into your repository.
-2. Locate the configuration section in the script (around line 260):
+2. Locate the configuration section in the script (around line 325):
    `const GAS_URL = "YOUR_WEB_APP_URL_HERE";`
 3. Replace the placeholder with your active Google Apps Script Web App URL.
 4. Host the file via **GitHub Pages** (or any static hosting service).
@@ -64,7 +68,7 @@ function doPost(e) {
 This protocol operates on the premise that pre-filled closed-system devices (e.g., 3% or 30mg/mL Nicotine) cannot be diluted. Therefore, dependence reduction relies strictly on modifying behavioral frequency, extending inter-puff intervals, and decoupling environmental triggers based on established CBT methodologies.
 
 *   Fagerström, K. (2012). Determinants of tobacco use and renaming the FTND to the Fagerström Test for Cigarette Dependence. *Tobacco Control*, 21(1), 9-14.
-*   Foulds, J., Veldheer, S., Yingst, J., Hrabovsky, S., Wilson, S. J., Nichols, T. T., & Eissenberg, T. (2015). Development of a questionnaire for assessing dependence on electronic cigarettes among a large sample of ex-smoking E-cigarette users. *Nicotine & Tobacco Research*, 17(2), 186-192.
+*   Foulds, J., Veldheer, S., Yingst, J., Hrabovsky, S., Wilson, S. J., Nichols, T. T., & Eissenberg, T. (2015). Development of a questionnaire for assessing dependence on electronic cigarettes among ex-smoking users. *Nicotine & Tobacco Research*, 17(2), 186-192.
 *   Truth Initiative. (2021). *Actionable strategies for e-cigarette cessation: Tapering and behavioral modification*.
 
 ## ⚠️ Disclaimer
