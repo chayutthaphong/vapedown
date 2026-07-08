@@ -398,12 +398,22 @@
             return Math.floor(diffDays / 7) * 7;
         }
 
+        // Boot: pull from Sheets first (source of truth), then render.
+        // If cloud is unreachable, fall back to local cache so the app still works offline.
         function initApp() {
+            // ensure startDate exists locally before first fetch
+            let d0 = getStorage();
+            if (!d0.startDate) { d0.startDate = todayStr; saveStorage(d0);
+                if (cloudEnabled()) postAction({ action: 'config', key: 'startDate', value: todayStr }); }
+
+            fetchFromSheets().then(function(){
+                renderFromState();
+            });
+        }
+
+        function renderFromState() {
             let data = getStorage();
-            if (!data.startDate) {
-                data.startDate = todayStr;
-                saveStorage(data);
-            }
+            if (!data.startDate) { data.startDate = todayStr; saveStorage(data); }
             const start = new Date(data.startDate + "T00:00:00");
             const now = new Date(todayStr + "T00:00:00");
             const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
@@ -418,8 +428,8 @@
                 showWeeklySummary(data, Math.floor(prevKey / 7) + 1);
             }
 
-            if (data.moodHistory[todayStr]) setMood(data.moodHistory[todayStr], false);
-            if (data.notesHistory[todayStr]) noteInput.value = data.notesHistory[todayStr];
+            if (data.moodHistory && data.moodHistory[todayStr]) setMood(data.moodHistory[todayStr], false);
+            if (data.notesHistory && data.notesHistory[todayStr]) noteInput.value = data.notesHistory[todayStr];
 
             if (data.assessments[assessKey] === undefined) {
                 openAssessment();
@@ -483,7 +493,7 @@
 
             calculateDynamicTarget();
             refreshUI();
-            syncToCloud(0, "Assessment Updated");
+            postAction({ action: 'assess', assessKey: assessKey, ftnd: ftnd, ecdi: ecdi, date: todayStr });
         }
 
         function calculateDynamicTarget() {
@@ -537,14 +547,14 @@
             document.querySelectorAll('.mood-btn').forEach(function(btn){
                 btn.classList.toggle('active', btn.dataset.mood === mood);
             });
-            if (doSync) syncToCloud(0, "Mood Logged");
+            if (doSync) postAction({ action: 'meta', date: todayStr, mood: mood, note: (data.notesHistory[todayStr] || '') });
         }
 
         noteInput.addEventListener('change', function() {
             let data = getStorage();
             data.notesHistory[todayStr] = noteInput.value;
             saveStorage(data);
-            syncToCloud(0, "Note Updated");
+            postAction({ action: 'meta', date: todayStr, mood: (data.moodHistory[todayStr] || ''), note: noteInput.value });
         });
 
         function refreshUI() {
@@ -584,16 +594,13 @@
 
         logBtn.addEventListener('click', function() {
             let data = getStorage();
+            const ts = new Date().toISOString();
             data.history[todayStr] = (data.history[todayStr] || 0) + 1;
             if (!data.timestamps[todayStr]) data.timestamps[todayStr] = [];
-            data.timestamps[todayStr].push(new Date().toISOString());
+            data.timestamps[todayStr].push(ts);
             saveStorage(data);
             refreshUI();
-            const todayCount = data.history[todayStr];
-            let status = "On Track";
-            if (currentTarget === 0) status = "Relapse";
-            else if (todayCount > currentTarget) status = "Over Limit";
-            syncToCloud(1, status);
+            postAction({ action: 'log', ts: ts, date: todayStr });
         });
 
         undoBtn.addEventListener('click', function() {
@@ -603,41 +610,72 @@
                 if (data.timestamps[todayStr] && data.timestamps[todayStr].length) data.timestamps[todayStr].pop();
                 saveStorage(data);
                 refreshUI();
+                postAction({ action: 'undo', date: todayStr });
             }
         });
 
-        function syncToCloud(incrementCount, statusMsg) {
-            if (!GAS_URL || GAS_URL.indexOf("script.google.com") === -1) return;
-            const syncStatus = document.getElementById('syncStatus');
-            const syncDot = document.getElementById('syncDot');
-            const timeStr = new Date().toTimeString().split(' ')[0];
-            let data = getStorage();
-            const totalToday = data.history[todayStr] || 0;
-            const currentNote = noteInput.value || "";
+        function _syncUI(state, msg) {
+            const s = document.getElementById('syncStatus');
+            const d = document.getElementById('syncDot');
+            if (state === 'busy') { s.innerText = msg || "Syncing..."; d.className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse"; }
+            else if (state === 'ok') { s.innerText = msg || "Synced to Google Sheets"; d.className = "w-2 h-2 rounded-full bg-green-500"; }
+            else { s.innerText = msg || "Offline (saved on device)"; d.className = "w-2 h-2 rounded-full bg-red-500"; }
+        }
 
-            syncStatus.innerText = "Syncing...";
-            syncDot.className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse";
+        function cloudEnabled() {
+            return GAS_URL && GAS_URL.indexOf("script.google.com") !== -1;
+        }
 
-            const formData = new URLSearchParams();
-            formData.append('date', todayStr);
-            formData.append('time', timeStr);
-            formData.append('count', totalToday);
-            formData.append('target', currentTarget);
-            formData.append('status', statusMsg);
-            formData.append('week', currentWeek);
-            formData.append('ftnd', currentFTND);
-            formData.append('ecdi', currentECDI);
-            formData.append('mood', todayMood || "Not Recorded");
-            formData.append('note', currentNote);
+        // POST an action to the Sheet. mode:no-cors = fire-and-forget (can't read response,
+        // but writes succeed). We keep local state as the immediate source of truth for UI.
+        function postAction(params) {
+            if (!cloudEnabled()) return Promise.resolve();
+            const body = new URLSearchParams(params);
+            _syncUI('busy');
+            return fetch(GAS_URL, { method: 'POST', body: body, mode: 'no-cors' })
+                .then(function(){ _syncUI('ok'); })
+                .catch(function(){ _syncUI('offline', 'Sync failed (saved on device)'); });
+        }
 
-            fetch(GAS_URL, { method: 'POST', body: formData, mode: 'no-cors' })
-            .then(function(){
-                syncStatus.innerText = "Synced to Google Sheets";
-                syncDot.className = "w-2 h-2 rounded-full bg-green-500";
-            }).catch(function(){
-                syncStatus.innerText = "Sync failed (saved locally)";
-                syncDot.className = "w-2 h-2 rounded-full bg-red-500";
-            });
+        // GET all data from the Sheet and rebuild local state. Sheet = source of truth.
+        function fetchFromSheets() {
+            if (!cloudEnabled()) { return Promise.resolve(false); }
+            _syncUI('busy', 'Loading from Google Sheets...');
+            // cache-bust so we always get fresh data
+            const url = GAS_URL + (GAS_URL.indexOf('?')===-1?'?':'&') + 't=' + Date.now();
+            return fetch(url, { method: 'GET' })
+                .then(function(r){ return r.json(); })
+                .then(function(remote){
+                    let data = getStorage();
+                    // rebuild history + timestamps from remote logs (1 row = 1 puff)
+                    const history = {}, timestamps = {};
+                    (remote.logs || []).forEach(function(l){
+                        const d = l.date;
+                        history[d] = (history[d] || 0) + 1;
+                        if (!timestamps[d]) timestamps[d] = [];
+                        timestamps[d].push(l.ts);
+                    });
+                    data.history = history;
+                    data.timestamps = timestamps;
+                    // assessments (keys are assessKey strings)
+                    data.assessments = remote.assessments || {};
+                    // config
+                    if (remote.config) {
+                        if (remote.config.startDate) data.startDate = remote.config.startDate;
+                        if (remote.config.programWeeks) data.programWeeks = parseInt(remote.config.programWeeks);
+                        if (remote.config.baseline) data.baseline = parseInt(remote.config.baseline);
+                    }
+                    // mood + notes
+                    if (remote.mood) data.moodHistory = remote.mood;
+                    if (remote.notes) data.notesHistory = remote.notes;
+                    saveStorage(data);
+                    _syncUI('ok', 'Loaded from Google Sheets');
+                    return true;
+                })
+                .catch(function(){
+                    _syncUI('offline', 'Using device data (cloud unreachable)');
+                    return false;
+                });
         }
 
         function updateChart(data) {
@@ -761,6 +799,7 @@
                     setupDurationButtons();
                     calculateDynamicTarget();
                     refreshUI();
+                    postAction({ action: 'config', key: 'programWeeks', value: String(w) });
                 };
             });
         }
