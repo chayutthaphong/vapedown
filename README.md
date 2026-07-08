@@ -4,8 +4,8 @@ A robust, web-based clinical tracking application designed to systematically mon
 
 ## 🌟 Core Clinical Features
 
-* **Mandatory FTND-V Assessment:** Integrates a vaping-adapted Fagerström Test for Nicotine Dependence (FTND-V) at the beginning of each week. The system strictly requires this assessment to recalibrate the protocol.
-* **Dynamic Tapering Algorithm:** Automatically calculates and adjusts daily puff benchmarks based on the user's weekly FTND-V score (High, Moderate, Low dependence).
+* **Dual-Protocol Assessment:** Integrates both the **FTND-V (Vaping Adapted Standard)** and the **ECDI (Penn State Electronic Cigarette Dependence Index)**. Users can choose their preferred clinical protocol at the start of each week to recalibrate the tapering threshold.
+* **Dynamic Tapering Algorithm:** Automatically calculates and adjusts daily puff benchmarks based on the clinical score obtained from the chosen assessment protocol.
 * **Heatmap Analytics:** Features a 7-day longitudinal tracking chart with dynamic heatmap color-coding (from yellow to dark red) to visually represent adherence severity relative to the daily benchmark.
 * **Comprehensive Clinical Reports (Weekly & Monthly):** Automatically generates end-of-week and end-of-month summaries. These reports calculate total puff volumes, evaluate adherence, and provide structured clinical feedback with synchronized visual cues.
 * **Independent Mood & Trigger Tracking:** Features optional daily affective state logging (via emojis) and a dedicated text input for users to qualitatively record daily triggers, cravings, or withdrawal symptoms.
@@ -24,8 +24,8 @@ To utilize the automated cloud backup, set up a Google Sheet with the following 
 | D | `Daily Target` | The dynamically calculated benchmark for the day. |
 | E | `Status` | Adherence status (`On Track`, `Over Limit`, or `Relapse`). |
 | F | `Week` | The current active week of the 8-week protocol. |
-| G | `FTND Score` | The most recent Fagerström score (0-10). |
-| H | `Mood` | The self-reported affective state (`Awful`, `Bad`, `Neutral`, `Good`, `Great`, or `Not Recorded`). |
+| G | `FTND Score` | The score (0-10 or 0-20) from the chosen protocol. |
+| H | `Mood` | The self-reported affective state. |
 | I | `Notes` | Qualitative data regarding triggers, cravings, or context. |
 
 ## 🚀 Deployment Guide
@@ -38,37 +38,27 @@ To utilize the automated cloud backup, set up a Google Sheet with the following 
 ```javascript
 function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  
-  var date = e.parameter.date;
-  var time = e.parameter.time;
-  var count = e.parameter.count;
-  var target = e.parameter.target;
-  var status = e.parameter.status;
-  var week = e.parameter.week || "-";
-  var ftnd = e.parameter.ftnd || "-";
-  var mood = e.parameter.mood || "Not Recorded";
-  var note = e.parameter.note || "";
-  
-  sheet.appendRow([date, time, count, target, status, week, ftnd, mood, note]);
-  
+  sheet.appendRow([
+    e.parameter.date, e.parameter.time, e.parameter.count, 
+    e.parameter.target, e.parameter.status, e.parameter.week, 
+    e.parameter.ftnd, e.parameter.mood, e.parameter.note
+  ]);
   return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
 }
 ```
 
 ### 2. Frontend Setup
-1. Copy the provided `index.html` file into your repository.
-2. Locate the configuration section in the script (around line 296):
-   `const GAS_URL = "YOUR_WEB_APP_URL_HERE";`
-3. Replace the placeholder with your active Google Apps Script Web App URL.
-4. Host the file via **GitHub Pages** (or any static hosting service).
-5. Open the hosted URL on a mobile device and select **"Add to Home Screen"** for optimal UI rendering.
+1. Copy the `index.html` file into your repository.
+2. Update the configuration variable `const GAS_URL` with your unique Web App URL from the deployment step above.
+3. Host the file via **GitHub Pages**.
+4. Access the site on iOS Safari and use **"Add to Home Screen"** for an app-like experience.
 
 ## 🧠 Clinical Rationale & References
 
-This protocol operates on the premise that pre-filled closed-system devices (e.g., 3% or 30mg/mL Nicotine) cannot be diluted. Therefore, dependence reduction relies strictly on modifying behavioral frequency, extending inter-puff intervals, and decoupling environmental triggers based on established CBT methodologies.
+This protocol operates on the premise that pre-filled closed-system devices cannot be diluted. Therefore, dependence reduction relies strictly on modifying behavioral frequency, interval extension, and trigger decoupling.
 
 * Fagerström, K. (2012). Determinants of tobacco use and renaming the FTND to the Fagerström Test for Cigarette Dependence. *Tobacco Control*, 21(1), 9-14.
-* Foulds, J., Veldheer, S., Yingst, J., Hrabovsky, S., Wilson, S. J., Nichols, T. T., & Eissenberg, T. (2015). Development of a questionnaire for assessing dependence on electronic cigarettes among ex-smoking users. *Nicotine & Tobacco Research*, 17(2), 186-192.
+* Foulds, J., et al. (2015). Development of a questionnaire for assessing dependence on electronic cigarettes. *Nicotine & Tobacco Research*, 17(2), 186-192.
 * Truth Initiative. (2021). *Actionable strategies for e-cigarette cessation: Tapering and behavioral modification*.
 
 ## ⚠️ Disclaimer
