@@ -113,12 +113,12 @@ function doPost(e) {
 
 This protocol operates on the premise that pre-filled closed-system devices cannot be diluted. Therefore, dependence reduction relies strictly on modifying behavioral frequency, interval extension, and trigger decoupling.
 
-Heatherton TF, et al. The Fagerström Test for Nicotine Dependence: a revision of the Fagerström Tolerance Questionnaire. Br J Addict. 1991.
-Foulds J, et al. Development of a questionnaire for assessing dependence on electronic cigarettes. Nicotine Tob Res. 2015.
-Tillery A, et al. Characterization of e-cigarette users according to device type, use behaviors... Tob Induc Dis. 2023.
-Lindson N, et al. Smoking reduction interventions for smoking cessation. Cochrane Database Syst Rev. 2019.
-US Preventive Services Task Force. Interventions for tobacco smoking cessation in adults. JAMA. 2021.
-Batra A, et al. S3 guideline "Smoking and tobacco dependence: screening, diagnosis, and treatment". Eur Addict Res. 2022..
+1) Heatherton TF, et al. The Fagerström Test for Nicotine Dependence: a revision of the Fagerström Tolerance Questionnaire. Br J Addict. 1991.
+2) Foulds J, et al. Development of a questionnaire for assessing dependence on electronic cigarettes. Nicotine Tob Res. 2015.
+3) Tillery A, et al. Characterization of e-cigarette users according to device type, use behaviors... Tob Induc Dis. 2023.
+4) Lindson N, et al. Smoking reduction interventions for smoking cessation. Cochrane Database Syst Rev. 2019.
+5) US Preventive Services Task Force. Interventions for tobacco smoking cessation in adults. JAMA. 2021.
+6) Batra A, et al. S3 guideline "Smoking and tobacco dependence: screening, diagnosis, and treatment". Eur Addict Res. 2022..
 
 ## ⚠️ Disclaimer
 
