@@ -7,463 +7,105 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #fafafa; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
-        
-        .mood-btn { 
-            filter: grayscale(100%); opacity: 0.5;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
-            border: 2px solid transparent; padding: 8px; border-radius: 16px;
-        }
-        .mood-btn:hover { opacity: 0.8; transform: scale(1.05); }
-        .mood-btn.active { 
-            transform: scale(1.15); filter: grayscale(0%); opacity: 1;
-            background-color: #f3f4f6; border-color: #111827;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #fafafa; }
+        .modal { display: none; }
+        .modal.active { display: flex; }
     </style>
 </head>
-<body class="flex flex-col items-center justify-start min-h-screen p-4 sm:p-6 text-gray-900 antialiased relative">
+<body class="flex flex-col items-center justify-start min-h-screen p-4 text-gray-900">
 
-    <div class="w-full max-w-md bg-white rounded-3xl shadow-sm border border-gray-100 p-6 space-y-6 my-4">
-        
-        <!-- Header & Live Clock -->
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-sm border border-gray-100 p-6 space-y-6">
         <div class="text-center">
-            <h1 class="text-3xl font-extralight tracking-tight text-gray-900">Step Down</h1>
-            <div class="inline-block mt-2 px-3 py-1 bg-gray-100 rounded-full cursor-pointer" onclick="forceFTND()">
-                <p class="text-xs text-gray-600 font-medium tracking-wider uppercase" id="weekDisplay">Loading...</p>
-            </div>
-            <p id="liveClock" class="text-xs text-gray-400 mt-3 font-medium tracking-wide"></p>
+            <h1 class="text-3xl font-extralight">Step Down</h1>
+            <p id="weekDisplay" class="text-xs text-gray-400 uppercase tracking-widest mt-2">Loading...</p>
         </div>
 
-        <!-- Clinical Assessment Summary -->
-        <div class="flex justify-between items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
-            <div>
-                <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Dependence (FTND-V)</p>
-                <p class="text-sm font-medium text-gray-700 mt-0.5" id="dependenceLabel">Assessing...</p>
-            </div>
-            <div class="text-right">
-                <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Score</p>
-                <p class="text-xl font-light text-gray-900" id="ftndScoreDisplay">-</p>
-            </div>
+        <div class="text-center bg-gray-50 py-6 rounded-2xl">
+            <p class="text-xs text-gray-400 uppercase">Today's Puffs</p>
+            <h2 id="currentPuffs" class="text-6xl font-extralight mt-2">0</h2>
+            <p id="motivationMsg" class="text-xs text-gray-500 mt-4 px-4"></p>
         </div>
 
-        <!-- Dashboard Counter -->
-        <div class="text-center bg-gray-50/50 border border-gray-100 rounded-2xl py-6 relative mt-2">
-            <p class="text-xs text-gray-400 uppercase tracking-widest mb-1 font-medium">Today's Puffs</p>
-            <div class="flex items-baseline justify-center gap-1">
-                <span id="currentPuffs" class="text-6xl font-extralight tracking-tighter text-gray-900">0</span>
-                <span class="text-xl text-gray-300 font-light">/</span>
-                <span id="dailyTargetDisplay" class="text-xl text-gray-400 font-light">-</span>
-            </div>
-            <p id="motivationMsg" class="text-xs text-gray-500 mt-3 px-4 font-medium min-h-[1rem]">
-                Ready to track.
-            </p>
-        </div>
-
-        <!-- Action Button -->
-        <button id="logBtn" class="w-full bg-gray-900 text-white py-4 rounded-2xl text-md font-medium tracking-wide shadow-sm hover:bg-gray-800 active:scale-[0.98] transition duration-150 ease-in-out">
-            Log 1 Puff
-        </button>
-
-        <!-- Heatmap Chart -->
-        <div class="pt-2">
-            <p class="text-[10px] uppercase tracking-wider text-gray-400 mb-3 font-medium text-center">Longitudinal Tracking (7-Day)</p>
-            <div class="h-40 w-full">
-                <canvas id="analyticsChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Daily Mood Tracker -->
-        <div class="border-t border-gray-100 pt-5 mt-4">
-            <div class="flex justify-between items-end mb-3">
-                <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Daily Mood (Optional)</p>
-            </div>
-            <div class="flex justify-between px-1" id="moodContainer">
-                <button class="mood-btn text-3xl" onclick="setMood('Awful')" data-mood="Awful">😫</button>
-                <button class="mood-btn text-3xl" onclick="setMood('Bad')" data-mood="Bad">🙁</button>
-                <button class="mood-btn text-3xl" onclick="setMood('Neutral')" data-mood="Neutral">😐</button>
-                <button class="mood-btn text-3xl" onclick="setMood('Good')" data-mood="Good">🙂</button>
-                <button class="mood-btn text-3xl" onclick="setMood('Great')" data-mood="Great">🤩</button>
-            </div>
-        </div>
-
-        <!-- Notes / Triggers Context -->
-        <div class="pt-2 pb-2">
-            <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-2">Clinical Notes / Triggers</p>
-            <textarea id="dailyNote" rows="2" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700 focus:outline-none focus:border-gray-600 transition" placeholder="Record specific triggers, cravings, or withdrawal symptoms..."></textarea>
-        </div>
+        <button id="logBtn" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-medium shadow-sm hover:bg-gray-800 transition">Log 1 Puff</button>
         
-        <!-- Cloud Sync Status -->
-        <div class="flex items-center justify-center gap-1.5 text-[11px] text-gray-400 font-light pt-4 border-t border-gray-50">
-            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse" id="syncDot"></span>
-            <span id="syncStatus">Ready</span>
-        </div>
-
-        <!-- Disclaimer & References -->
-        <details class="group mt-4 border-t border-gray-100 pt-4">
-            <summary class="flex justify-center items-center text-[10px] text-gray-400 cursor-pointer list-none uppercase tracking-wider">
-                <span class="border-b border-gray-300 border-dashed pb-0.5 hover:text-gray-600 transition">Disclaimer & References</span>
-            </summary>
-            <div class="mt-4 text-[10px] text-gray-400 leading-relaxed space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                <p><strong>Disclaimer:</strong> This application provides a structural framework for nicotine tapering and is intended for personal data collection and longitudinal tracking. It does not constitute formal medical advice, diagnosis, or behavioral therapy. Please consult healthcare professionals for personalized guidance.</p>
-                <p><strong>Clinical Rationale:</strong> The protocol operates on the premise that pre-filled closed-system devices cannot be diluted. Dependence reduction relies strictly on modifying behavioral frequency, interval extension, and trigger decoupling based on Cognitive Behavioral Therapy (CBT) principles.</p>
-                <p><strong>References:</strong></p>
-                <ul class="list-disc pl-3 space-y-1">
-                    <li>Fagerström, K. (2012). Determinants of tobacco use and renaming the FTND to the Fagerström Test for Cigarette Dependence. <em>Tobacco Control</em>, 21(1), 9-14.</li>
-                    <li>Truth Initiative. (2021). Actionable strategies for e-cigarette cessation.</li>
-                </ul>
-            </div>
-        </details>
-    </div>
-
-    <!-- Weekly Summary Modal (Dynamic Colors) -->
-    <div id="summaryModal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm hidden flex-col items-center justify-center p-4 z-50">
-        <div class="bg-white w-full max-w-sm rounded-3xl shadow-xl p-6 text-center space-y-4 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-2 bg-gray-300 transition-colors duration-500" id="summaryTopBar"></div>
-            <h2 class="text-xl font-medium text-gray-900 mt-2">Weekly Overview</h2>
-            <p class="text-xs text-gray-500" id="summaryWeekText">Reviewing Week X</p>
-            
-            <div class="bg-gray-50 rounded-2xl p-4 mt-4 text-left space-y-3">
-                <div class="flex justify-between items-center border-b border-gray-200 pb-2">
-                    <span class="text-sm text-gray-600">Total Puffs Logged</span>
-                    <span class="text-2xl font-bold transition-colors duration-500" id="summaryTotalPuffs">0</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-sm text-gray-600">Protocol Status</span>
-                    <span class="text-sm font-bold" id="summaryAdherence">-</span>
-                </div>
-            </div>
-            
-            <p class="text-xs text-gray-600 mt-4 px-2 font-medium" id="summaryFeedbackText">-</p>
-            
-            <button onclick="closeSummary()" class="w-full mt-4 bg-gray-900 text-white py-3 rounded-xl text-sm font-medium shadow-sm hover:bg-gray-800 transition">
-                Acknowledge & Continue
-            </button>
+        <div class="h-40 w-full">
+            <canvas id="analyticsChart"></canvas>
         </div>
     </div>
 
-    <!-- Monthly Report Modal (New Feature) -->
-    <div id="monthlyModal" class="fixed inset-0 bg-gray-900/85 backdrop-blur-md hidden flex-col items-center justify-center p-4 z-[60]">
-        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 text-center space-y-4 relative overflow-hidden border border-gray-100">
-            <div class="absolute top-0 left-0 w-full h-3 bg-gray-300 transition-colors duration-500" id="monthlyTopBar"></div>
-            <h2 class="text-2xl font-light text-gray-900 mt-2">Monthly Clinical Report</h2>
-            <p class="text-xs text-gray-500 uppercase tracking-wider" id="monthlyText">Month X (Weeks Y-Z)</p>
-            
-            <div class="bg-gray-50 rounded-2xl p-5 mt-4 text-left space-y-4 shadow-inner">
-                <div class="flex justify-between items-center border-b border-gray-200 pb-3">
-                    <span class="text-sm text-gray-600 font-medium">30-Day Puff Volume</span>
-                    <span class="text-3xl font-black transition-colors duration-500" id="monthlyTotalPuffs">0</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-sm text-gray-600 font-medium">Longitudinal Trend</span>
-                    <span class="text-sm font-bold" id="monthlyTrend">-</span>
-                </div>
-            </div>
-            
-            <p class="text-sm text-gray-700 mt-4 px-2 leading-relaxed" id="monthlyFeedbackText">-</p>
-            
-            <button onclick="closeMonthly()" class="w-full mt-5 bg-black text-white py-4 rounded-xl text-sm font-bold uppercase tracking-wider shadow-md hover:bg-gray-800 transition transform active:scale-95">
-                Sign off Report
-            </button>
-        </div>
-    </div>
-
-    <!-- FTND Modal -->
-    <div id="ftndModal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm hidden flex-col items-center justify-center p-4 z-[70]">
-        <div class="bg-white w-full max-w-md rounded-3xl shadow-xl p-6 space-y-5 max-h-[90vh] overflow-y-auto">
-            <div class="text-center border-b border-gray-100 pb-4">
-                <h2 class="text-xl font-medium text-gray-900">Protocol Assessment</h2>
-                <p class="text-xs text-gray-500 mt-1">FTND-V (Required to proceed)</p>
-            </div>
-            
-            <form id="ftndForm" class="space-y-6">
-                <!-- Q1 to Q4 (Kept exact same structure for brevity) -->
-                <div><label class="block text-sm font-medium text-gray-700 mb-2">1. How soon after you wake up do you vape?</label><select id="q1" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700"><option value="3">Within 5 minutes</option><option value="2">6 - 30 minutes</option><option value="1">31 - 60 minutes</option><option value="0">After 60 minutes</option></select></div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-2">2. How many puffs do you take per day?</label><select id="q2" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700"><option value="3">More than 50 puffs</option><option value="2">31 to 50 puffs</option><option value="1">16 to 30 puffs</option><option value="0">15 puffs or less</option></select></div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-2">3. Do you find it difficult to refrain from vaping in forbidden places?</label><select id="q3" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700"><option value="1">Yes</option><option value="0">No</option></select></div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-2">4. Do you vape even if you are sick in bed?</label><select id="q4" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700"><option value="1">Yes</option><option value="0">No</option></select></div>
-                
-                <button type="button" onclick="submitFTND()" class="w-full bg-blue-600 text-white py-3 rounded-xl text-sm font-medium shadow-sm hover:bg-blue-700 transition">
-                    Submit Assessment
-                </button>
-            </form>
+    <div id="assessmentModal" class="fixed inset-0 bg-gray-900/90 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 text-center space-y-4">
+            <h2 class="text-xl font-medium">Weekly Assessment</h2>
+            <p class="text-sm text-gray-500">Choose your preferred clinical protocol for this week:</p>
+            <button onclick="showProtocol('FTND')" class="w-full bg-blue-600 text-white py-3 rounded-xl">FTND-V (Standard)</button>
+            <button onclick="showProtocol('ECDI')" class="w-full bg-emerald-600 text-white py-3 rounded-xl">ECDI (Penn State)</button>
         </div>
     </div>
 
     <script>
-        // ==========================================
-        // CONFIGURATION
-        // ==========================================
+        // --- CONFIG ---
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzEsQ8_glo3ARMLLkSYSLmRJD3bB_w-RO3TrMzP7f9Howhy_BvHGOK6u0WpssTqdSpwsw/exec"; 
-
-        // Local State
-        let currentTarget = 0;
-        let currentWeek = 1;
-        let currentFTND = 0;
-        let chartInstance = null;
-        let todayMood = null; 
+        let currentTarget = 0, currentWeek = 1, currentScore = 0;
         const todayStr = new Date().toLocaleDateString('en-CA');
 
-        const ftndModal = document.getElementById('ftndModal');
-        const summaryModal = document.getElementById('summaryModal');
-        const monthlyModal = document.getElementById('monthlyModal');
-        const logBtn = document.getElementById('logBtn');
-        const noteInput = document.getElementById('dailyNote');
-
-        // Clock Update
-        function updateClock() {
-            const now = new Date();
-            const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-            document.getElementById('liveClock').innerText = now.toLocaleDateString('en-US', options);
-        }
-        setInterval(updateClock, 1000); updateClock();
-
-        // Heatmap Color Logic (Shared across Chart, Weekly, and Monthly)
-        function getHeatmapColor(actual, target) {
-            if (target === 0) return actual > 0 ? '#dc2626' : '#9ca3af'; 
-            if (actual === 0) return '#9ca3af'; // Grey
-            const ratio = actual / target;
-            if (ratio <= 0.40) return '#fde047'; // Yellow
-            if (ratio <= 0.75) return '#f59e0b'; // Amber
-            if (ratio <= 0.99) return '#ea580c'; // Orange
-            if (ratio <= 1.20) return '#dc2626'; // Red
-            return '#991b1b'; // Dark Red
-        }
-
-        // Storage Management
         function getStorage() {
-            const data = localStorage.getItem('clinical_vape_tracker_v4');
-            return data ? JSON.parse(data) : { startDate: null, history: {}, ftndHistory: {}, moodHistory: {}, notesHistory: {}, lastActiveWeek: 1, lastActiveMonth: 1 };
+            return JSON.parse(localStorage.getItem('vape_tracker_v6') || '{"startDate":null, "history":{}, "ftndHistory":{}}');
         }
-        function saveStorage(data) { localStorage.setItem('clinical_vape_tracker_v4', JSON.stringify(data)); }
 
-        // Initialization
+        function saveStorage(data) { localStorage.setItem('vape_tracker_v6', JSON.stringify(data)); }
+
         function initApp() {
             let data = getStorage();
-            if (!data.startDate) {
-                data.startDate = todayStr;
-                saveStorage(data);
-            }
+            if (!data.startDate) { data.startDate = todayStr; saveStorage(data); }
 
-            const start = new Date(data.startDate);
-            const now = new Date(todayStr);
-            const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-            currentWeek = Math.floor(diffDays / 7) + 1;
+            const start = new Date(data.startDate + "T00:00:00");
+            const now = new Date(todayStr + "T00:00:00");
+            currentWeek = Math.floor(Math.max(0, (now - start) / (1000 * 60 * 60 * 24)) / 7) + 1;
             document.getElementById('weekDisplay').innerText = `Week ${currentWeek} / 8`;
-            
-            // Check Weekly Summary Transition
-            if (data.lastActiveWeek && data.lastActiveWeek < currentWeek) {
-                showWeeklySummary(data, data.lastActiveWeek);
-                data.lastActiveWeek = currentWeek;
-                saveStorage(data);
-            }
 
-            // Check Monthly Summary Transition (Every 4 Weeks)
-            let currentMonth = Math.ceil(currentWeek / 4);
-            if (data.lastActiveMonth && data.lastActiveMonth < currentMonth) {
-                setTimeout(() => { showMonthlySummary(data, data.lastActiveMonth); }, 500); // Delay slightly if weekly shows first
-                data.lastActiveMonth = currentMonth;
-                saveStorage(data);
-            }
-
-            // Restore Mood & Notes
-            if (data.moodHistory[todayStr]) setMood(data.moodHistory[todayStr], false);
-            if (data.notesHistory[todayStr]) noteInput.value = data.notesHistory[todayStr];
-
-            // Weekly FTND Check
-            if (data.ftndHistory[currentWeek] === undefined) {
-                ftndModal.classList.remove('hidden'); ftndModal.classList.add('flex');
+            // ตรวจสอบว่าสัปดาห์นี้ทำไปหรือยัง
+            if (!data.ftndHistory[currentWeek]) {
+                document.getElementById('assessmentModal').classList.add('flex');
             } else {
-                currentFTND = data.ftndHistory[currentWeek];
-                calculateDynamicTarget();
-                refreshUI();
+                currentScore = data.ftndHistory[currentWeek].score;
+                calculateTarget();
+                updateUI();
             }
         }
 
-        function forceFTND() {
-            ftndModal.classList.remove('hidden'); ftndModal.classList.add('flex');
+        function calculateTarget() {
+            // คำนวณตามสัปดาห์ (Tapering)
+            let base = 20; 
+            const rates = [1.0, 0.9, 0.7, 0.5, 0.3, 0.2, 0.1, 0.05];
+            currentTarget = Math.ceil(base * rates[currentWeek - 1]);
         }
 
-        function submitFTND() {
-            const score = parseInt(document.getElementById('q1').value) + parseInt(document.getElementById('q2').value) + 
-                          parseInt(document.getElementById('q3').value) + parseInt(document.getElementById('q4').value);
-            currentFTND = score;
-            let data = getStorage(); data.ftndHistory[currentWeek] = score; saveStorage(data);
-            ftndModal.classList.add('hidden'); ftndModal.classList.remove('flex');
-            calculateDynamicTarget(); refreshUI(); syncToCloud(0, "Protocol Updated");
+        function updateUI() {
+            const data = getStorage();
+            document.getElementById('currentPuffs').innerText = data.history[todayStr] || 0;
         }
 
-        function calculateDynamicTarget() {
-            document.getElementById('ftndScoreDisplay').innerText = currentFTND;
-            const label = document.getElementById('dependenceLabel');
-            let baseTarget = 10; 
-            if (currentFTND >= 6) { label.innerText = "High"; label.className = "text-sm font-bold text-red-600 mt-0.5"; baseTarget = 30; } 
-            else if (currentFTND >= 4) { label.innerText = "Moderate"; label.className = "text-sm font-bold text-amber-500 mt-0.5"; baseTarget = 20; } 
-            else { label.innerText = "Low"; label.className = "text-sm font-bold text-green-600 mt-0.5"; }
-
-            const taperRates = { 1:1.0, 2:0.8, 3:0.6, 4:0.4, 5:0.2, 6:0.1, 7:0.05 };
-            const rate = taperRates[currentWeek] !== undefined ? taperRates[currentWeek] : 0;
-            
-            currentTarget = Math.ceil(baseTarget * rate);
-            if (currentTarget < 1 && currentWeek < 8) currentTarget = 1;
-        }
-
-        function setMood(mood, doSync = true) {
-            todayMood = mood;
-            let data = getStorage(); data.moodHistory[todayStr] = mood; saveStorage(data);
-            document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mood === mood));
-            if (doSync) syncToCloud(0, "Mood Logged"); 
-        }
-
-        noteInput.addEventListener('change', () => {
-            let data = getStorage(); data.notesHistory[todayStr] = noteInput.value; saveStorage(data);
-            syncToCloud(0, "Note Updated");
-        });
-
-        function refreshUI() {
+        document.getElementById('logBtn').addEventListener('click', () => {
             let data = getStorage();
-            const todayCount = data.history[todayStr] || 0;
-            
-            document.getElementById('currentPuffs').innerText = todayCount;
-            document.getElementById('dailyTargetDisplay').innerText = currentTarget;
-            const msgBox = document.getElementById('motivationMsg');
-            
-            if (currentTarget === 0) {
-                logBtn.innerText = "⚠️ Log Relapse Puff"; logBtn.className = "w-full bg-red-600 text-white py-4 rounded-2xl text-md font-medium shadow-sm hover:bg-red-700 active:scale-[0.98] transition";
-                msgBox.innerText = todayCount === 0 ? "Target is zero. Maintain abstinence." : "Relapse recorded. Document triggers in notes.";
-                msgBox.className = todayCount === 0 ? "text-xs text-green-600 mt-3 px-4 font-bold" : "text-xs text-red-600 mt-3 px-4 font-bold";
-            } else {
-                logBtn.innerText = "Log 1 Puff"; logBtn.className = "w-full bg-gray-900 text-white py-4 rounded-2xl text-md font-medium shadow-sm hover:bg-gray-800 active:scale-[0.98] transition";
-                if (todayCount === 0) {
-                    msgBox.innerText = "Focus on interval extension. Delay the first puff."; msgBox.className = "text-xs text-blue-600 mt-3 px-4 font-medium";
-                } else if (todayCount < currentTarget) {
-                    msgBox.innerText = `${currentTarget - todayCount} puffs remaining. Monitor craving intensity.`; msgBox.className = "text-xs text-amber-600 mt-3 px-4 font-medium";
-                } else if (todayCount === currentTarget) {
-                    msgBox.innerText = "Benchmark reached. Stop here to stabilize neuroadaptation."; msgBox.className = "text-xs text-gray-800 mt-3 px-4 font-bold";
-                } else {
-                    msgBox.innerText = "Over limit. Record the trigger context in notes."; msgBox.className = "text-xs text-red-500 mt-3 px-4 font-medium";
-                }
-            }
-            updateChart(data);
-        }
-
-        logBtn.addEventListener('click', () => {
-            let data = getStorage(); data.history[todayStr] = (data.history[todayStr] || 0) + 1; saveStorage(data);
-            refreshUI();
-            const todayCount = data.history[todayStr];
-            let status = "On Track";
-            if (currentTarget === 0) status = "Relapse"; else if (todayCount > currentTarget) status = "Over Limit";
-            syncToCloud(1, status);
+            data.history[todayStr] = (data.history[todayStr] || 0) + 1;
+            saveStorage(data);
+            updateUI();
         });
 
-        function syncToCloud(incrementCount, statusMsg) {
-            if (GAS_URL === "YOUR_WEB_APP_URL_HERE") return;
-            const syncStatus = document.getElementById('syncStatus'), syncDot = document.getElementById('syncDot');
-            const timeStr = new Date().toTimeString().split(' ')[0];
-            let data = getStorage(); const totalToday = data.history[todayStr] || 0; const currentNote = noteInput.value || "";
-
-            syncStatus.innerText = "Syncing dataset..."; syncDot.className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse";
-            const formData = new URLSearchParams();
-            formData.append('date', todayStr); formData.append('time', timeStr); formData.append('count', incrementCount === 0 ? 0 : totalToday); 
-            formData.append('target', currentTarget); formData.append('status', statusMsg); formData.append('week', currentWeek);
-            formData.append('ftnd', currentFTND); formData.append('mood', todayMood || "Not Recorded"); formData.append('note', currentNote);
-
-            fetch(GAS_URL, { method: 'POST', body: formData, mode: 'no-cors' })
-            .then(() => { syncStatus.innerText = "Database synced"; syncDot.className = "w-2 h-2 rounded-full bg-green-500"; })
-            .catch(err => { syncStatus.innerText = "Sync failed"; syncDot.className = "w-2 h-2 rounded-full bg-red-500"; });
+        // เปิด protocol ตามที่เลือก
+        function showProtocol(type) {
+            alert(`Opening ${type} Protocol... (Implement questions here)`);
+            finalizeAssessment(5, type); // Test score
         }
 
-        // Heatmap Chart rendering
-        function updateChart(data) {
-            const ctx = document.getElementById('analyticsChart').getContext('2d');
-            const dates = [];
-            for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); dates.push(d.toLocaleDateString('en-CA')); }
-
-            const actualData = dates.map(date => data.history[date] || 0);
-            const benchmarkData = dates.map(() => currentTarget);
-            const labels = dates.map(date => new Date(date).toLocaleDateString('en-US', { weekday: 'short' }));
-
-            const bgColors = actualData.map((actual, index) => getHeatmapColor(actual, benchmarkData[index]));
-
-            if (chartInstance) chartInstance.destroy();
-
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Puffs', data: actualData, backgroundColor: bgColors, borderRadius: 4, barPercentage: 0.5, order: 2 },
-                        { label: 'Target', data: benchmarkData, type: 'line', borderColor: '#9ca3af', borderWidth: 1.5, borderDash: [3, 3], pointRadius: 0, fill: false, order: 1 }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 9 }, color: '#9ca3af' } }, y: { grid: { color: '#f9fafb' }, ticks: { beginAtZero: true, font: { size: 9 }, color: '#9ca3af', stepSize: 5 } } } }
-            });
+        function finalizeAssessment(score, type) {
+            let data = getStorage();
+            data.ftndHistory[currentWeek] = { score: score, type: type };
+            saveStorage(data);
+            document.getElementById('assessmentModal').classList.remove('flex');
+            calculateTarget();
+            updateUI();
         }
-
-        // Weekly Summary 
-        function showWeeklySummary(data, weekNum) {
-            let totalPuffs = 0; let totalTarget = currentTarget * 7; 
-            for (let i = 1; i <= 7; i++) {
-                const d = new Date(); d.setDate(d.getDate() - i);
-                totalPuffs += (data.history[d.toLocaleDateString('en-CA')] || 0);
-            }
-            
-            document.getElementById('summaryWeekText').innerText = `Reviewing Week ${weekNum}`;
-            const totalElem = document.getElementById('summaryTotalPuffs');
-            totalElem.innerText = totalPuffs;
-            
-            const color = getHeatmapColor(totalPuffs, totalTarget);
-            totalElem.style.color = color;
-            document.getElementById('summaryTopBar').style.backgroundColor = color;
-            
-            const adLabel = document.getElementById('summaryAdherence');
-            const fbText = document.getElementById('summaryFeedbackText');
-            
-            if (totalTarget === 0 && totalPuffs === 0) {
-                adLabel.innerText = "Excellent Abstinence"; adLabel.style.color = "#16a34a"; 
-                fbText.innerText = "Total abstinence maintained. Keep monitoring your mood and triggers to prevent relapse.";
-            } else if (totalPuffs <= totalTarget) {
-                adLabel.innerText = "On Track"; adLabel.style.color = "#16a34a";
-                fbText.innerText = "Excellent adherence. Your neuroadaptation is stabilizing. Keep up the disciplined pacing for the next phase.";
-            } else {
-                adLabel.innerText = "Action Required"; adLabel.style.color = "#dc2626"; 
-                fbText.innerText = "You exceeded the benchmark. Recommendation: Review your clinical notes to identify high-risk triggers, and enforce a strict 15-minute delay rule before every puff this week.";
-            }
-            summaryModal.classList.remove('hidden'); summaryModal.classList.add('flex');
-        }
-        function closeSummary() { summaryModal.classList.add('hidden'); summaryModal.classList.remove('flex'); }
-
-        // Monthly Summary
-        function showMonthlySummary(data, monthNum) {
-            let totalPuffs = 0; let totalTarget = currentTarget * 28; 
-            for (let i = 1; i <= 28; i++) {
-                const d = new Date(); d.setDate(d.getDate() - i);
-                totalPuffs += (data.history[d.toLocaleDateString('en-CA')] || 0);
-            }
-            
-            document.getElementById('monthlyText').innerText = `Month ${monthNum} (Weeks ${(monthNum*4)-3}-${monthNum*4})`;
-            const totalElem = document.getElementById('monthlyTotalPuffs');
-            totalElem.innerText = totalPuffs;
-            
-            const color = getHeatmapColor(totalPuffs, totalTarget);
-            totalElem.style.color = color;
-            document.getElementById('monthlyTopBar').style.backgroundColor = color;
-            
-            const trendLabel = document.getElementById('monthlyTrend');
-            const fbText = document.getElementById('monthlyFeedbackText');
-            
-            if (totalPuffs <= totalTarget) {
-                trendLabel.innerText = "Positive Progress"; trendLabel.style.color = "#16a34a";
-                fbText.innerText = "Outstanding commitment over the past 30 days. Your dependence level is significantly reducing. Stay focused on the final goal.";
-            } else {
-                trendLabel.innerText = "Needs Recalibration"; trendLabel.style.color = "#dc2626";
-                fbText.innerText = "Your monthly average is above the tapering curve. Consider reassessing your FTND-V score and employing stronger distraction techniques this month.";
-            }
-            monthlyModal.classList.remove('hidden'); monthlyModal.classList.add('flex');
-        }
-        function closeMonthly() { monthlyModal.classList.add('hidden'); monthlyModal.classList.remove('flex'); }
 
         initApp();
     </script>
