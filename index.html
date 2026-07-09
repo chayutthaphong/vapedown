@@ -109,7 +109,6 @@
             <span id="syncStatus">Ready</span>
         </div>
 
-        <!-- Program Length Selector -->
         <div class="border-t border-gray-100 pt-5 mt-4">
             <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-3">Program Length (quit within)</p>
             <div class="grid grid-cols-3 gap-2" id="durationSelector">
@@ -123,7 +122,6 @@
             </div>
         </div>
 
-        <!-- Weekly Taper Plan -->
         <div class="border-t border-gray-100 pt-5 mt-4">
             <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-3" id="planTitle">Taper Plan (your ceiling)</p>
             <div id="planTable" class="space-y-1"></div>
@@ -137,40 +135,6 @@
             <div class="mt-4 text-[10px] text-gray-400 leading-relaxed space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <p><strong>Disclaimer:</strong> This application provides a structural framework for nicotine tapering and is intended for personal data collection and longitudinal tracking. It does not constitute formal medical advice, diagnosis, or behavioral therapy. Please consult healthcare professionals for personalized guidance.</p>
                 <p><strong>Clinical rationale:</strong> Pre-filled closed-system pod devices cannot be diluted, so dependence reduction relies on behavioural frequency modification, interval extension, and trigger decoupling (CBT principles). Dependence is assessed with the FTND and the Penn State ECDI; the weekly puff ceiling is a deliberately quit-oriented target set below typical real-world consumption and stepped down to zero over the chosen program length.</p>
-
-                <p class="pt-1"><strong>References (Vancouver style)</strong></p>
-                <p class="text-[9px] text-gray-500 italic">All citations verified against PubMed. DOI links included.</p>
-
-                <p class="pt-1 font-medium text-gray-500">Dependence assessment instruments</p>
-                <ol class="list-decimal pl-4 space-y-1.5">
-                    <li>Heatherton TF, Kozlowski LT, Frecker RC, Fagerstr&ouml;m KO. The Fagerstr&ouml;m Test for Nicotine Dependence: a revision of the Fagerstr&ouml;m Tolerance Questionnaire. Br J Addict. 1991;86(9):1119&ndash;27. doi:<a href="https://doi.org/10.1111/j.1360-0443.1991.tb01879.x" class="text-blue-600 underline">10.1111/j.1360-0443.1991.tb01879.x</a></li>
-                    <li>Foulds J, Veldheer S, Yingst J, Hrabovsky S, Wilson SJ, Nichols TT, et al. Development of a questionnaire for assessing dependence on electronic cigarettes among a large sample of ex-smoking E-cigarette users. Nicotine Tob Res. 2015;17(2):186&ndash;92. doi:<a href="https://doi.org/10.1093/ntr/ntu204" class="text-blue-600 underline">10.1093/ntr/ntu204</a></li>
-                </ol>
-
-                <p class="pt-1 font-medium text-gray-500">Puff frequency / consumption benchmarks</p>
-                <ol class="list-decimal pl-4 space-y-1.5" start="3">
-                    <li>Yingst J, Foulds J, Veldheer S, Cobb CO, Yen MS, Hrabovsky S, et al. Measurement of electronic cigarette frequency of use among smokers participating in a randomized controlled trial. Nicotine Tob Res. 2020;22(5):699&ndash;704. doi:<a href="https://doi.org/10.1093/ntr/nty233" class="text-blue-600 underline">10.1093/ntr/nty233</a> [PSECDI times/day predicts actual puffs; ~15 puffs per use].</li>
-                    <li>Tillery A, Aherrera A, Chen R, Lin JJY, Tehrani M, Moustafa D, et al. Characterization of e-cigarette users according to device type, use behaviors, and self-reported health outcomes: findings from the EMIT study. Tob Induc Dis. 2023;21:159. doi:<a href="https://doi.org/10.18332/tid/174710" class="text-blue-600 underline">10.18332/tid/174710</a> [POD users mean 123 puffs/day; MOD users 373].</li>
-                    <li>Kosmider L, Jackson A, Leigh N, O&rsquo;Connor R, Goniewicz ML. Circadian puffing behavior and topography among e-cigarette users. Tob Regul Sci. 2018;4(5):41&ndash;9. doi:<a href="https://doi.org/10.18001/TRS.4.5.4" class="text-blue-600 underline">10.18001/TRS.4.5.4</a> [mean 156 puffs/day over 24 h].</li>
-                    <li>Aherrera A, Aravindakshan A, Jarmul S, Olmedo P, Chen R, Cohen JE, et al. E-cigarette use behaviors and device characteristics of daily exclusive e-cigarette users in Maryland: implications for product toxicity. Tob Induc Dis. 2020;18:93. doi:<a href="https://doi.org/10.18332/tid/128319" class="text-blue-600 underline">10.18332/tid/128319</a> [mean 365 puffs/day, mainly MOD/tank users].</li>
-                </ol>
-
-                <p class="pt-1 font-medium text-gray-500">Tapering strategy &amp; program length</p>
-                <ol class="list-decimal pl-4 space-y-1.5" start="7">
-                    <li>Lindson N, Klemperer E, Hong B, Ord&oacute;&ntilde;ez-Mena JM, Aveyard P. Smoking reduction interventions for smoking cessation. Cochrane Database Syst Rev. 2019;9(9):CD013183. doi:<a href="https://doi.org/10.1002/14651858.CD013183.pub2" class="text-blue-600 underline">10.1002/14651858.CD013183.pub2</a> [reduction-to-quit vs abrupt: no difference in long-term quit rates].</li>
-                    <li>Lindson-Hawley N, Banting M, West R, Michie S, Shinkins B, Aveyard P. Gradual versus abrupt smoking cessation: a randomized, controlled noninferiority trial. Ann Intern Med. 2016;164(9):585&ndash;92. doi:<a href="https://doi.org/10.7326/M14-2805" class="text-blue-600 underline">10.7326/M14-2805</a> [gradual group reduced 75% over 2 weeks pre-quit].</li>
-                    <li>Skelton E, Lum A, Robinson M, Dunlop A, Guillaumier A, Baker A, et al. A pilot randomised controlled trial of abrupt versus gradual smoking cessation in combination with vaporised nicotine products for people receiving alcohol and other drug treatment. Addict Behav. 2022;131:107328. doi:<a href="https://doi.org/10.1016/j.addbeh.2022.107328" class="text-blue-600 underline">10.1016/j.addbeh.2022.107328</a> [gradual arm: reduce baseline cigarettes/day 25% over 4 weeks].</li>
-                    <li>Farley A, Tearne S, Taskila T, Williams RH, MacAskill S, Etter JF, et al. A mixed methods feasibility study of nicotine-assisted smoking reduction programmes delivered by community pharmacists &mdash; the RedPharm study. BMC Public Health. 2017;17(1):210. doi:<a href="https://doi.org/10.1186/s12889-017-4116-z" class="text-blue-600 underline">10.1186/s12889-017-4116-z</a> [4-week vs 16-week reduction; participants stayed ~6 weeks on average].</li>
-                    <li>Cinciripini PM, Minnix JA, Robinson JD, Kypriotakis G, Cui Y, Blalock JA, et al. The effects of scheduled smoking reduction and precessation nicotine replacement therapy on smoking cessation: randomized controlled trial with compliance. JMIR Form Res. 2023;7:e39487. doi:<a href="https://doi.org/10.2196/39487" class="text-blue-600 underline">10.2196/39487</a> [3-week scheduled reduction pre-quit; compliance predicted abstinence].</li>
-                </ol>
-
-                <p class="pt-1 font-medium text-gray-500">Clinical practice guidelines (cessation)</p>
-                <ol class="list-decimal pl-4 space-y-1.5" start="12">
-                    <li>US Preventive Services Task Force; Krist AH, Davidson KW, Mangione CM, Barry MJ, Cabana M, et al. Interventions for tobacco smoking cessation in adults, including pregnant persons: US Preventive Services Task Force recommendation statement. JAMA. 2021;325(3):265&ndash;79. doi:<a href="https://doi.org/10.1001/jama.2020.25019" class="text-blue-600 underline">10.1001/jama.2020.25019</a> [Grade A: offer behavioural intervention + FDA-approved pharmacotherapy; evidence on e-cigarettes for cessation insufficient].</li>
-                    <li>Batra A, Kiefer F, Andreas S, Gohlke H, Klein M, Kotz D, et al. S3 guideline "Smoking and tobacco dependence: screening, diagnosis, and treatment" &mdash; short version. Eur Addict Res. 2022;28(5):382&ndash;400. doi:<a href="https://doi.org/10.1159/000525265" class="text-blue-600 underline">10.1159/000525265</a> [stepped care: if brief/telephone/app-based support is insufficient, offer behavioural therapy &plusmn; medication; if NRT ineffective, offer varenicline or bupropion].</li>
-                </ol>
-
-                <p class="pt-2 text-gray-400 italic">Data source: citations retrieved and verified via PubMed. Consumption figures (refs 3&ndash;6) describe real-world use, not recommended safe limits. Puff-ceiling values and the linear taper schedule in this app are a pragmatic design choice informed by the above literature, not a validated dosing protocol.</p>
             </div>
         </details>
     </div>
@@ -188,109 +152,22 @@
             </div>
 
             <form id="ftndForm" class="space-y-5">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">1. How soon after you wake up do you take your first puff?</label>
-                    <select id="f1" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700">
-                        <option value="3">Within 5 minutes</option>
-                        <option value="2">6 &ndash; 30 minutes</option>
-                        <option value="1">31 &ndash; 60 minutes</option>
-                        <option value="0">After 60 minutes</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">2. Do you find it difficult to refrain from vaping in places where it is forbidden (e.g. hospital, cinema)?</label>
-                    <select id="f2" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700">
-                        <option value="1">Yes</option>
-                        <option value="0">No</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">3. Which puff would you hate most to give up?</label>
-                    <select id="f3" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700">
-                        <option value="1">The first one in the morning</option>
-                        <option value="0">Any other</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">4. How many times do you vape (sessions) per day?</label>
-                    <select id="f4" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700">
-                        <option value="0">10 or fewer</option>
-                        <option value="1">11 &ndash; 20</option>
-                        <option value="2">21 &ndash; 30</option>
-                        <option value="3">31 or more</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">5. Do you vape more frequently during the first hours after waking than during the rest of the day?</label>
-                    <select id="f5" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700">
-                        <option value="1">Yes</option>
-                        <option value="0">No</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">6. Do you vape even if you are so ill that you are in bed most of the day?</label>
-                    <select id="f6" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700">
-                        <option value="1">Yes</option>
-                        <option value="0">No</option>
-                    </select>
-                </div>
-                <button type="button" onclick="nextToECDI()" class="w-full bg-gray-900 text-white py-3 rounded-xl text-sm font-medium shadow-sm hover:bg-gray-800 transition">
-                    Next: E-cig Dependence &rarr;
-                </button>
+                <div><label class="block text-sm font-medium text-gray-700 mb-2">1. How soon after you wake up do you take your first puff?</label><select id="f1" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700"><option value="3">Within 5 minutes</option><option value="2">6 &ndash; 30 minutes</option><option value="1">31 &ndash; 60 minutes</option><option value="0">After 60 minutes</option></select></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-2">2. Do you find it difficult to refrain from vaping in places where it is forbidden?</label><select id="f2" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700"><option value="1">Yes</option><option value="0">No</option></select></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-2">3. Which puff would you hate most to give up?</label><select id="f3" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700"><option value="1">The first one in the morning</option><option value="0">Any other</option></select></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-2">4. How many times do you vape (sessions) per day?</label><select id="f4" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700"><option value="0">10 or fewer</option><option value="1">11 &ndash; 20</option><option value="2">21 &ndash; 30</option><option value="3">31 or more</option></select></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-2">5. Do you vape more frequently during the first hours after waking?</label><select id="f5" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700"><option value="1">Yes</option><option value="0">No</option></select></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-2">6. Do you vape even if you are so ill that you are in bed most of the day?</label><select id="f6" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700"><option value="1">Yes</option><option value="0">No</option></select></div>
+                <button type="button" onclick="nextToECDI()" class="w-full bg-gray-900 text-white py-3 rounded-xl text-sm font-medium shadow-sm hover:bg-gray-800 transition">Next: E-cig Dependence &rarr;</button>
             </form>
 
             <form id="ecdiForm" class="space-y-5 hidden">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">1. How many times per day do you usually use your e-cigarette? (one "time" &asymp; one session / ~15 puffs)</label>
-                    <select id="e1" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700">
-                        <option value="0">0 &ndash; 4 times</option>
-                        <option value="1">5 &ndash; 9 times</option>
-                        <option value="2">10 &ndash; 14 times</option>
-                        <option value="3">15 &ndash; 19 times</option>
-                        <option value="4">20 &ndash; 29 times</option>
-                        <option value="5">30+ times</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">2. On days you can vape freely, how soon after waking do you have your first vape?</label>
-                    <select id="e2" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700">
-                        <option value="3">0 &ndash; 5 minutes</option>
-                        <option value="2">6 &ndash; 30 minutes</option>
-                        <option value="1">31 &ndash; 60 minutes</option>
-                        <option value="0">61+ minutes</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">3. Do you sometimes wake up at night to vape?</label>
-                    <select id="e3a" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700 mb-2">
-                        <option value="0">No</option>
-                        <option value="1">Yes</option>
-                    </select>
-                    <label class="block text-xs text-gray-500 mb-1">If yes, how many nights per week?</label>
-                    <select id="e3b" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700">
-                        <option value="0">0 nights</option>
-                        <option value="1">1 &ndash; 3 nights</option>
-                        <option value="2">4+ nights</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">4. Do you vape now because it is really hard to quit?</label>
-                    <select id="e4" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700">
-                        <option value="0">No</option>
-                        <option value="1">Yes</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">5. Do you feel a strong urge / craving to vape when you haven't used for a while?</label>
-                    <select id="e5" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700">
-                        <option value="0">No</option>
-                        <option value="1">Yes</option>
-                    </select>
-                </div>
-                <div class="flex gap-2">
-                    <button type="button" onclick="backToFTND()" class="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl text-sm font-medium hover:bg-gray-200 transition">&larr; Back</button>
-                    <button type="button" onclick="submitAssessment()" class="flex-1 bg-blue-600 text-white py-3 rounded-xl text-sm font-medium shadow-sm hover:bg-blue-700 transition">Submit</button>
-                </div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-2">1. How many times per day do you usually use your e-cigarette?</label><select id="e1" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700"><option value="0">0 &ndash; 4 times</option><option value="1">5 &ndash; 9 times</option><option value="2">10 &ndash; 14 times</option><option value="3">15 &ndash; 19 times</option><option value="4">20 &ndash; 29 times</option><option value="5">30+ times</option></select></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-2">2. On days you can vape freely, how soon after waking do you have your first vape?</label><select id="e2" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700"><option value="3">0 &ndash; 5 minutes</option><option value="2">6 &ndash; 30 minutes</option><option value="1">31 &ndash; 60 minutes</option><option value="0">61+ minutes</option></select></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-2">3. Do you sometimes wake up at night to vape?</label><select id="e3a" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700 mb-2"><option value="0">No</option><option value="1">Yes</option></select><label class="block text-xs text-gray-500 mb-1">If yes, how many nights per week?</label><select id="e3b" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700"><option value="0">0 nights</option><option value="1">1 &ndash; 3 nights</option><option value="2">4+ nights</option></select></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-2">4. Do you vape now because it is really hard to quit?</label><select id="e4" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700"><option value="0">No</option><option value="1">Yes</option></select></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-2">5. Do you feel a strong urge / craving to vape when you haven't used for a while?</label><select id="e5" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700"><option value="0">No</option><option value="1">Yes</option></select></div>
+                <div class="flex gap-2"><button type="button" onclick="backToFTND()" class="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl text-sm font-medium hover:bg-gray-200 transition">&larr; Back</button><button type="button" onclick="submitAssessment()" class="flex-1 bg-blue-600 text-white py-3 rounded-xl text-sm font-medium shadow-sm hover:bg-blue-700 transition">Submit</button></div>
             </form>
         </div>
     </div>
@@ -301,19 +178,11 @@
             <h2 class="text-xl font-medium text-gray-900 mt-2">Weekly Overview</h2>
             <p class="text-xs text-gray-500" id="summaryWeekText">Reviewing Week X</p>
             <div class="bg-gray-50 rounded-2xl p-4 mt-4 text-left space-y-3">
-                <div class="flex justify-between items-center border-b border-gray-200 pb-2">
-                    <span class="text-sm text-gray-600">Total Puffs Logged</span>
-                    <span class="text-lg font-semibold text-gray-900" id="summaryTotalPuffs">0</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-sm text-gray-600">Adherence Level</span>
-                    <span class="text-sm font-bold text-green-600" id="summaryAdherence">Good</span>
-                </div>
+                <div class="flex justify-between items-center border-b border-gray-200 pb-2"><span class="text-sm text-gray-600">Total Puffs Logged</span><span class="text-lg font-semibold text-gray-900" id="summaryTotalPuffs">0</span></div>
+                <div class="flex justify-between items-center"><span class="text-sm text-gray-600">Adherence Level</span><span class="text-sm font-bold text-green-600" id="summaryAdherence">Good</span></div>
             </div>
             <p class="text-xs text-gray-500 mt-4 px-2" id="summaryFeedbackText"></p>
-            <button onclick="closeSummary()" class="w-full mt-4 bg-gray-900 text-white py-3 rounded-xl text-sm font-medium shadow-sm hover:bg-gray-800 transition">
-                Acknowledge &amp; Continue
-            </button>
+            <button onclick="closeSummary()" class="w-full mt-4 bg-gray-900 text-white py-3 rounded-xl text-sm font-medium shadow-sm hover:bg-gray-800 transition">Acknowledge &amp; Continue</button>
         </div>
     </div>
 
@@ -322,37 +191,16 @@
             <div class="absolute top-0 left-0 w-full h-2 bg-indigo-500"></div>
             <h2 class="text-xl font-medium text-gray-900 mt-2">Monthly Review</h2>
             <p class="text-xs text-gray-500" id="monthlyRangeText">Last 28 days</p>
-
             <div class="bg-gray-50 rounded-2xl p-4 mt-2 text-left space-y-3">
-                <div class="flex justify-between items-center border-b border-gray-200 pb-2">
-                    <span class="text-sm text-gray-600">Total puffs (28d)</span>
-                    <span class="text-lg font-semibold text-gray-900" id="mTotal">0</span>
-                </div>
-                <div class="flex justify-between items-center border-b border-gray-200 pb-2">
-                    <span class="text-sm text-gray-600">Daily average</span>
-                    <span class="text-sm font-bold text-gray-900" id="mAvg">0</span>
-                </div>
-                <div class="flex justify-between items-center border-b border-gray-200 pb-2">
-                    <span class="text-sm text-gray-600">Trend vs first week</span>
-                    <span class="text-sm font-bold" id="mTrend">-</span>
-                </div>
-                <div class="flex justify-between items-center border-b border-gray-200 pb-2">
-                    <span class="text-sm text-gray-600">Zero-puff days</span>
-                    <span class="text-sm font-bold text-green-600" id="mZero">0</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-sm text-gray-600">Dependence (FTND / ECDI)</span>
-                    <span class="text-sm font-bold text-gray-900" id="mDep">- / -</span>
-                </div>
+                <div class="flex justify-between items-center border-b border-gray-200 pb-2"><span class="text-sm text-gray-600">Total puffs (28d)</span><span class="text-lg font-semibold text-gray-900" id="mTotal">0</span></div>
+                <div class="flex justify-between items-center border-b border-gray-200 pb-2"><span class="text-sm text-gray-600">Daily average</span><span class="text-sm font-bold text-gray-900" id="mAvg">0</span></div>
+                <div class="flex justify-between items-center border-b border-gray-200 pb-2"><span class="text-sm text-gray-600">Trend vs first week</span><span class="text-sm font-bold" id="mTrend">-</span></div>
+                <div class="flex justify-between items-center border-b border-gray-200 pb-2"><span class="text-sm text-gray-600">Zero-puff days</span><span class="text-sm font-bold text-green-600" id="mZero">0</span></div>
+                <div class="flex justify-between items-center"><span class="text-sm text-gray-600">Dependence (FTND / ECDI)</span><span class="text-sm font-bold text-gray-900" id="mDep">- / -</span></div>
             </div>
-
             <div class="h-32 w-full mt-2"><canvas id="monthlyChart"></canvas></div>
-
             <p class="text-xs text-gray-500 mt-2 px-2 text-left" id="mFeedback"></p>
-
-            <button onclick="closeMonthly()" class="w-full mt-2 bg-gray-900 text-white py-3 rounded-xl text-sm font-medium shadow-sm hover:bg-gray-800 transition">
-                Close
-            </button>
+            <button onclick="closeMonthly()" class="w-full mt-2 bg-gray-900 text-white py-3 rounded-xl text-sm font-medium shadow-sm hover:bg-gray-800 transition">Close</button>
         </div>
     </div>
 
@@ -376,6 +224,18 @@
         const undoBtn = document.getElementById('undoBtn');
         const noteInput = document.getElementById('dailyNote');
 
+        // ฟังก์ชันใหม่: ป้องกันการเกิดบั๊ก NaN บน Safari (iOS)
+        function getSafeDate(dateString) {
+            if (!dateString) return new Date();
+            let safeStr = String(dateString).split('T')[0].replace(/-/g, '/');
+            return new Date(safeStr);
+        }
+
+        // ฟังก์ชันใหม่: สร้างรหัส ID ที่ไม่ซ้ำกันสำหรับแต่ละ Log
+        function generateUniqueID() {
+            return 'LOG-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 5);
+        }
+
         function updateClock() {
             const now = new Date();
             const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -398,13 +258,11 @@
             return Math.floor(diffDays / 7) * 7;
         }
 
-        // Boot: pull from Sheets first (source of truth), then render.
-        // If cloud is unreachable, fall back to local cache so the app still works offline.
         function initApp() {
-            // ensure startDate exists locally before first fetch
             let d0 = getStorage();
             if (!d0.startDate) { d0.startDate = todayStr; saveStorage(d0);
-                if (cloudEnabled()) postAction({ action: 'config', key: 'startDate', value: todayStr }); }
+                // แนบ date เข้าไปด้วย สำหรับ Config
+                if (cloudEnabled()) postAction({ action: 'config', key: 'startDate', value: todayStr, date: new Date().toISOString() }); }
 
             fetchFromSheets().then(function(){
                 renderFromState();
@@ -414,9 +272,12 @@
         function renderFromState() {
             let data = getStorage();
             if (!data.startDate) { data.startDate = todayStr; saveStorage(data); }
-            const start = new Date(data.startDate + "T00:00:00");
-            const now = new Date(todayStr + "T00:00:00");
+            
+            // แก้ไขการอ่านค่าวันที่
+            const start = getSafeDate(data.startDate);
+            const now = getSafeDate(todayStr);
             const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+            
             programWeeks = data.programWeeks || 6;
             currentWeek = Math.floor(diffDays / 7) + 1;
             document.getElementById('weekDisplay').innerText = "Week " + currentWeek + " / " + programWeeks;
@@ -480,8 +341,9 @@
             currentECDI = ecdi;
 
             const data = getStorage();
-            const start = new Date(data.startDate + "T00:00:00");
-            const now = new Date(todayStr + "T00:00:00");
+            // แก้ไขการอ่านค่าวันที่
+            const start = getSafeDate(data.startDate);
+            const now = getSafeDate(todayStr);
             const diffDays = Math.floor((now - start) / (1000*60*60*24));
             const assessKey = getAssessmentDayIndex(diffDays);
 
@@ -513,25 +375,16 @@
             else if (currentECDI >= 4) { eLabel.innerText="Medium"; eLabel.className="text-sm font-bold text-amber-500"; eBand=1; }
             else { eLabel.innerText="Low"; eLabel.className="text-sm font-bold text-green-600"; eBand=0; }
 
-            // Baseline = starting CEILING for week 1, set by dependence level.
-            // NOTE: this is a quit-oriented target, deliberately BELOW typical
-            // real-world use (POD users average ~123 puffs/day, EMIT/Johns
-            // Hopkins 2023) so that week 1 already nudges downward rather than
-            // just mirroring current consumption.
-            const ftndBase = [40, 70, 100][fBand];        // low / mod / high
-            const ecdiBase = [40, 70, 100, 130][eBand];   // low / med / high / very-high
+            const ftndBase = [40, 70, 100][fBand];
+            const ecdiBase = [40, 70, 100, 130][eBand];
             let baseTarget = Math.max(ftndBase, ecdiBase);
 
             currentTarget = ceilingForWeek(currentWeek, baseTarget);
             renderPlanTable();
         }
 
-        // Linear step-down to zero over the chosen program length.
-        // Week 1 = baseline; final week = 0 (quit). Higher dependence
-        // (assessed each week via FTND/ECDI) can slow the curve.
         function ceilingForWeek(week, baseTarget) {
             if (week >= programWeeks) return 0;
-            // fraction remaining: linear from 1.0 (week 1) down to 0 (final week)
             const frac = 1 - (week - 1) / (programWeeks - 1);
             let c = Math.ceil(baseTarget * frac);
             if (c < 1) c = 1;
@@ -592,15 +445,18 @@
             updateChart(data);
         }
 
+        // เพิ่มการเจน Unique ID ในส่วนการกดปุ่ม
         logBtn.addEventListener('click', function() {
             let data = getStorage();
             const ts = new Date().toISOString();
+            const logId = generateUniqueID(); 
             data.history[todayStr] = (data.history[todayStr] || 0) + 1;
             if (!data.timestamps[todayStr]) data.timestamps[todayStr] = [];
             data.timestamps[todayStr].push(ts);
             saveStorage(data);
             refreshUI();
-            postAction({ action: 'log', ts: ts, date: todayStr });
+            // แนบ id เข้าไปด้วย
+            postAction({ action: 'log', id: logId, ts: ts, date: todayStr });
         });
 
         undoBtn.addEventListener('click', function() {
@@ -626,8 +482,6 @@
             return GAS_URL && GAS_URL.indexOf("script.google.com") !== -1;
         }
 
-        // POST an action to the Sheet. mode:no-cors = fire-and-forget (can't read response,
-        // but writes succeed). We keep local state as the immediate source of truth for UI.
         function postAction(params) {
             if (!cloudEnabled()) return Promise.resolve();
             const body = new URLSearchParams(params);
@@ -637,17 +491,14 @@
                 .catch(function(){ _syncUI('offline', 'Sync failed (saved on device)'); });
         }
 
-        // GET all data from the Sheet and rebuild local state. Sheet = source of truth.
         function fetchFromSheets() {
             if (!cloudEnabled()) { return Promise.resolve(false); }
             _syncUI('busy', 'Loading from Google Sheets...');
-            // cache-bust so we always get fresh data
             const url = GAS_URL + (GAS_URL.indexOf('?')===-1?'?':'&') + 't=' + Date.now();
             return fetch(url, { method: 'GET' })
                 .then(function(r){ return r.json(); })
                 .then(function(remote){
                     let data = getStorage();
-                    // rebuild history + timestamps from remote logs (1 row = 1 puff)
                     const history = {}, timestamps = {};
                     (remote.logs || []).forEach(function(l){
                         const d = l.date;
@@ -657,15 +508,12 @@
                     });
                     data.history = history;
                     data.timestamps = timestamps;
-                    // assessments (keys are assessKey strings)
                     data.assessments = remote.assessments || {};
-                    // config
                     if (remote.config) {
                         if (remote.config.startDate) data.startDate = remote.config.startDate;
                         if (remote.config.programWeeks) data.programWeeks = parseInt(remote.config.programWeeks);
                         if (remote.config.baseline) data.baseline = parseInt(remote.config.baseline);
                     }
-                    // mood + notes
                     if (remote.mood) data.moodHistory = remote.mood;
                     if (remote.notes) data.notesHistory = remote.notes;
                     saveStorage(data);
@@ -687,7 +535,9 @@
             }
             const actualData = dates.map(function(date){return data.history[date] || 0;});
             const benchmarkData = dates.map(function(){return currentTarget;});
-            const labels = dates.map(function(date){return new Date(date).toLocaleDateString('en-US', { weekday: 'short' });});
+            
+            // แก้ไขการอ่านค่าวันที่
+            const labels = dates.map(function(date){return getSafeDate(date).toLocaleDateString('en-US', { weekday: 'short' });});
 
             const bgColors = actualData.map(function(actual, index){
                 const target = benchmarkData[index];
@@ -716,7 +566,6 @@
         }
 
         function showWeeklySummary(data, weekNum) {
-            // Compute ceiling that applied during the reviewed week
             let fBand = currentFTND>=6?2:(currentFTND>=4?1:0);
             let eBand = currentECDI>=13?3:(currentECDI>=9?2:(currentECDI>=4?1:0));
             const baseTarget = Math.max([40,70,100][fBand], [40,70,100,130][eBand]);
@@ -799,12 +648,12 @@
                     setupDurationButtons();
                     calculateDynamicTarget();
                     refreshUI();
-                    postAction({ action: 'config', key: 'programWeeks', value: String(w) });
+                    // แนบ date เข้าไปด้วย
+                    postAction({ action: 'config', key: 'programWeeks', value: String(w), date: new Date().toISOString() });
                 };
             });
         }
 
-        // ---- Monthly review ----
         function buildMonthlyStats() {
             const data = getStorage();
             const days = [];
@@ -817,7 +666,6 @@
             const total = logged.reduce(function(s,v){ return s+v; }, 0);
             const avg = logged.length ? Math.round(total/logged.length) : 0;
             const zeroDays = logged.filter(function(v){ return v === 0; }).length;
-            // trend: avg of first 7 logged vs last 7 logged
             const first7 = vals.slice(0,7).filter(function(v){return v!==undefined;});
             const last7 = vals.slice(21).filter(function(v){return v!==undefined;});
             const firstAvg = first7.length ? first7.reduce(function(s,v){return s+v;},0)/first7.length : 0;
@@ -839,7 +687,6 @@
             else if (s.trendPct > 5) { trendEl.innerText = "+" + s.trendPct + "% \u2191"; trendEl.className = "text-sm font-bold text-red-500"; }
             else { trendEl.innerText = "stable"; trendEl.className = "text-sm font-bold text-gray-500"; }
 
-            // feedback
             const fb = document.getElementById('mFeedback');
             if (s.lastAvg === 0 && s.firstAvg > 0) {
                 fb.innerText = "Remarkable \u2014 you've reached zero over the last week. Focus now on staying quit and watching for high-risk triggers.";
@@ -853,7 +700,6 @@
                 fb.innerHTML = "Puffs rose this month. That's a signal, not a failure. Revisit your triggers and re-set a realistic ceiling. <span class='block mt-1 text-gray-500'>Guidelines (USPSTF 2021; German S3 Tobacco Guideline 2022) recommend that people who cannot quit with behavioural methods alone be offered approved cessation medication plus counselling by a clinician or pharmacist. See references below.</span>";
             }
 
-            // chart: 28-day line
             const ctx = document.getElementById('monthlyChart').getContext('2d');
             const labels = s.days.map(function(ds, i){ return (i % 7 === 0) ? ds.slice(5) : ""; });
             const plotVals = s.vals.map(function(v){ return v === undefined ? null : v; });
@@ -872,11 +718,11 @@
             document.getElementById('monthlyModal').classList.remove('flex');
         }
 
-        // Auto-show monthly review once every 28 days
         function checkMonthlyAuto() {
             let data = getStorage();
-            const start = new Date(data.startDate + "T00:00:00");
-            const now = new Date(todayStr + "T00:00:00");
+            // แก้ไขการอ่านค่าวันที่
+            const start = getSafeDate(data.startDate);
+            const now = getSafeDate(todayStr);
             const diffDays = Math.floor((now - start) / (1000*60*60*24));
             if (diffDays > 0 && diffDays % 28 === 0) {
                 const monthKey = Math.floor(diffDays / 28);
