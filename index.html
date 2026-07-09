@@ -109,6 +109,7 @@
             <span id="syncStatus">Ready</span>
         </div>
 
+        <!-- Program Length Selector -->
         <div class="border-t border-gray-100 pt-5 mt-4">
             <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-3">Program Length (quit within)</p>
             <div class="grid grid-cols-3 gap-2" id="durationSelector">
@@ -122,12 +123,14 @@
             </div>
         </div>
 
+        <!-- Weekly Taper Plan -->
         <div class="border-t border-gray-100 pt-5 mt-4">
             <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-3" id="planTitle">Taper Plan (your ceiling)</p>
             <div id="planTable" class="space-y-1"></div>
             <p class="text-[9px] text-gray-400 mt-3 leading-relaxed">Ceiling = baseline puffs/day (from your FTND + PS-ECDI scores) &times; weekly reduction. Baseline anchored to POD-user data: mean ~123 puffs/day (EMIT study). Your current week is highlighted.</p>
         </div>
 
+        <!-- References Section (Restored in full) -->
         <details class="group mt-4 border-t border-gray-100 pt-4">
             <summary class="flex justify-center items-center text-[10px] text-gray-400 cursor-pointer list-none uppercase tracking-wider">
                 <span class="border-b border-gray-300 border-dashed pb-0.5 hover:text-gray-600 transition">Disclaimer &amp; References</span>
@@ -135,10 +138,45 @@
             <div class="mt-4 text-[10px] text-gray-400 leading-relaxed space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <p><strong>Disclaimer:</strong> This application provides a structural framework for nicotine tapering and is intended for personal data collection and longitudinal tracking. It does not constitute formal medical advice, diagnosis, or behavioral therapy. Please consult healthcare professionals for personalized guidance.</p>
                 <p><strong>Clinical rationale:</strong> Pre-filled closed-system pod devices cannot be diluted, so dependence reduction relies on behavioural frequency modification, interval extension, and trigger decoupling (CBT principles). Dependence is assessed with the FTND and the Penn State ECDI; the weekly puff ceiling is a deliberately quit-oriented target set below typical real-world consumption and stepped down to zero over the chosen program length.</p>
+
+                <p class="pt-1"><strong>References (Vancouver style)</strong></p>
+                <p class="text-[9px] text-gray-500 italic">All citations verified against PubMed. DOI links included.</p>
+
+                <p class="pt-1 font-medium text-gray-500">Dependence assessment instruments</p>
+                <ol class="list-decimal pl-4 space-y-1.5">
+                    <li>Heatherton TF, Kozlowski LT, Frecker RC, Fagerstr&ouml;m KO. The Fagerstr&ouml;m Test for Nicotine Dependence: a revision of the Fagerstr&ouml;m Tolerance Questionnaire. Br J Addict. 1991;86(9):1119&ndash;27. doi:<a href="https://doi.org/10.1111/j.1360-0443.1991.tb01879.x" class="text-blue-600 underline">10.1111/j.1360-0443.1991.tb01879.x</a></li>
+                    <li>Foulds J, Veldheer S, Yingst J, Hrabovsky S, Wilson SJ, Nichols TT, et al. Development of a questionnaire for assessing dependence on electronic cigarettes among a large sample of ex-smoking E-cigarette users. Nicotine Tob Res. 2015;17(2):186&ndash;92. doi:<a href="https://doi.org/10.1093/ntr/ntu204" class="text-blue-600 underline">10.1093/ntr/ntu204</a></li>
+                </ol>
+
+                <p class="pt-1 font-medium text-gray-500">Puff frequency / consumption benchmarks</p>
+                <ol class="list-decimal pl-4 space-y-1.5" start="3">
+                    <li>Yingst J, Foulds J, Veldheer S, Cobb CO, Yen MS, Hrabovsky S, et al. Measurement of electronic cigarette frequency of use among smokers participating in a randomized controlled trial. Nicotine Tob Res. 2020;22(5):699&ndash;704. doi:<a href="https://doi.org/10.1093/ntr/nty233" class="text-blue-600 underline">10.1093/ntr/nty233</a> [PSECDI times/day predicts actual puffs; ~15 puffs per use].</li>
+                    <li>Tillery A, Aherrera A, Chen R, Lin JJY, Tehrani M, Moustafa D, et al. Characterization of e-cigarette users according to device type, use behaviors, and self-reported health outcomes: findings from the EMIT study. Tob Induc Dis. 2023;21:159. doi:<a href="https://doi.org/10.18332/tid/174710" class="text-blue-600 underline">10.18332/tid/174710</a> [POD users mean 123 puffs/day; MOD users 373].</li>
+                    <li>Kosmider L, Jackson A, Leigh N, O&rsquo;Connor R, Goniewicz ML. Circadian puffing behavior and topography among e-cigarette users. Tob Regul Sci. 2018;4(5):41&ndash;9. doi:<a href="https://doi.org/10.18001/TRS.4.5.4" class="text-blue-600 underline">10.18001/TRS.4.5.4</a> [mean 156 puffs/day over 24 h].</li>
+                    <li>Aherrera A, Aravindakshan A, Jarmul S, Olmedo P, Chen R, Cohen JE, et al. E-cigarette use behaviors and device characteristics of daily exclusive e-cigarette users in Maryland: implications for product toxicity. Tob Induc Dis. 2020;18:93. doi:<a href="https://doi.org/10.18332/tid/128319" class="text-blue-600 underline">10.18332/tid/128319</a> [mean 365 puffs/day, mainly MOD/tank users].</li>
+                </ol>
+
+                <p class="pt-1 font-medium text-gray-500">Tapering strategy &amp; program length</p>
+                <ol class="list-decimal pl-4 space-y-1.5" start="7">
+                    <li>Lindson N, Klemperer E, Hong B, Ord&oacute;&ntilde;ez-Mena JM, Aveyard P. Smoking reduction interventions for smoking cessation. Cochrane Database Syst Rev. 2019;9(9):CD013183. doi:<a href="https://doi.org/10.1002/14651858.CD013183.pub2" class="text-blue-600 underline">10.1002/14651858.CD013183.pub2</a> [reduction-to-quit vs abrupt: no difference in long-term quit rates].</li>
+                    <li>Lindson-Hawley N, Banting M, West R, Michie S, Shinkins B, Aveyard P. Gradual versus abrupt smoking cessation: a randomized, controlled noninferiority trial. Ann Intern Med. 2016;164(9):585&ndash;92. doi:<a href="https://doi.org/10.7326/M14-2805" class="text-blue-600 underline">10.7326/M14-2805</a> [gradual group reduced 75% over 2 weeks pre-quit].</li>
+                    <li>Skelton E, Lum A, Robinson M, Dunlop A, Guillaumier A, Baker A, et al. A pilot randomised controlled trial of abrupt versus gradual smoking cessation in combination with vaporised nicotine products for people receiving alcohol and other drug treatment. Addict Behav. 2022;131:107328. doi:<a href="https://doi.org/10.1016/j.addbeh.2022.107328" class="text-blue-600 underline">10.1016/j.addbeh.2022.107328</a> [gradual arm: reduce baseline cigarettes/day 25% over 4 weeks].</li>
+                    <li>Farley A, Tearne S, Taskila T, Williams RH, MacAskill S, Etter JF, et al. A mixed methods feasibility study of nicotine-assisted smoking reduction programmes delivered by community pharmacists &mdash; the RedPharm study. BMC Public Health. 2017;17(1):210. doi:<a href="https://doi.org/10.1186/s12889-017-4116-z" class="text-blue-600 underline">10.1186/s12889-017-4116-z</a> [4-week vs 16-week reduction; participants stayed ~6 weeks on average].</li>
+                    <li>Cinciripini PM, Minnix JA, Robinson JD, Kypriotakis G, Cui Y, Blalock JA, et al. The effects of scheduled smoking reduction and precessation nicotine replacement therapy on smoking cessation: randomized controlled trial with compliance. JMIR Form Res. 2023;7:e39487. doi:<a href="https://doi.org/10.2196/39487" class="text-blue-600 underline">10.2196/39487</a> [3-week scheduled reduction pre-quit; compliance predicted abstinence].</li>
+                </ol>
+
+                <p class="pt-1 font-medium text-gray-500">Clinical practice guidelines (cessation)</p>
+                <ol class="list-decimal pl-4 space-y-1.5" start="12">
+                    <li>US Preventive Services Task Force; Krist AH, Davidson KW, Mangione CM, Barry MJ, Cabana M, et al. Interventions for tobacco smoking cessation in adults, including pregnant persons: US Preventive Services Task Force recommendation statement. JAMA. 2021;325(3):265&ndash;79. doi:<a href="https://doi.org/10.1001/jama.2020.25019" class="text-blue-600 underline">10.1001/jama.2020.25019</a> [Grade A: offer behavioural intervention + FDA-approved pharmacotherapy; evidence on e-cigarettes for cessation insufficient].</li>
+                    <li>Batra A, Kiefer F, Andreas S, Gohlke H, Klein M, Kotz D, et al. S3 guideline "Smoking and tobacco dependence: screening, diagnosis, and treatment" &mdash; short version. Eur Addict Res. 2022;28(5):382&ndash;400. doi:<a href="https://doi.org/10.1159/000525265" class="text-blue-600 underline">10.1159/000525265</a> [stepped care: if brief/telephone/app-based support is insufficient, offer behavioural therapy &plusmn; medication; if NRT ineffective, offer varenicline or bupropion].</li>
+                </ol>
+
+                <p class="pt-2 text-gray-400 italic">Data source: citations retrieved and verified via PubMed. Consumption figures (refs 3&ndash;6) describe real-world use, not recommended safe limits. Puff-ceiling values and the linear taper schedule in this app are a pragmatic design choice informed by the above literature, not a validated dosing protocol.</p>
             </div>
         </details>
     </div>
 
+    <!-- Modals -->
     <div id="assessModal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm hidden flex-col items-center justify-center p-4 z-50">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-xl p-6 space-y-5 max-h-[90vh] overflow-y-auto">
             <div class="text-center border-b border-gray-100 pb-4">
@@ -204,6 +242,7 @@
         </div>
     </div>
 
+    <!-- Script Block / Logic Updates -->
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxIYaNvnUunRzFh2giTfkT7yNaZrJkAwlyzAmdThDhzMCqhCL0JZS2lvyrtbv3WXE4esQ/exec";
         const STORAGE_KEY = 'clinical_vape_tracker_v4';
@@ -224,7 +263,7 @@
         const undoBtn = document.getElementById('undoBtn');
         const noteInput = document.getElementById('dailyNote');
 
-        // ฟังก์ชันใหม่: ป้องกันการเกิดบั๊ก NaN แบบ 100% (มีระบบ Auto-heal)
+        // ฟังก์ชันป้องกันการเกิดบั๊ก NaN แบบ 100% (มีระบบ Auto-heal)
         function getSafeDate(dateString) {
             if (!dateString || dateString === 'undefined' || dateString === 'null') {
                 return new Date();
@@ -584,6 +623,7 @@
             });
         }
 
+        // ตรวจสอบและยืนยันการทำงานของ Weekly Summary
         function showWeeklySummary(data, weekNum) {
             let fBand = currentFTND>=6?2:(currentFTND>=4?1:0);
             let eBand = currentECDI>=13?3:(currentECDI>=9?2:(currentECDI>=4?1:0));
@@ -591,6 +631,7 @@
             const weekCeiling = ceilingForWeek(weekNum, baseTarget);
 
             let totalPuffs = 0, daysOver = 0, daysLogged = 0;
+            // คำนวณยอด 7 วันย้อนหลัง
             for (let i = 1; i <= 7; i++) {
                 const d = new Date(); d.setDate(d.getDate() - i);
                 const ds = d.toLocaleDateString('en-CA');
@@ -672,9 +713,11 @@
             });
         }
 
+        // ตรวจสอบและยืนยันการทำงานของ Monthly Stats
         function buildMonthlyStats() {
             const data = getStorage();
             const days = [];
+            // ดึงข้อมูล 28 วันย้อนหลัง
             for (let i = 27; i >= 0; i--) {
                 const d = new Date(); d.setDate(d.getDate() - i);
                 days.push(d.toLocaleDateString('en-CA'));
@@ -684,6 +727,8 @@
             const total = logged.reduce(function(s,v){ return s+v; }, 0);
             const avg = logged.length ? Math.round(total/logged.length) : 0;
             const zeroDays = logged.filter(function(v){ return v === 0; }).length;
+            
+            // วัดค่าเทรนด์: เอา 7 วันแรก เทียบกับ 7 วันหลังสุด
             const first7 = vals.slice(0,7).filter(function(v){return v!==undefined;});
             const last7 = vals.slice(21).filter(function(v){return v!==undefined;});
             const firstAvg = first7.length ? first7.reduce(function(s,v){return s+v;},0)/first7.length : 0;
