@@ -28,6 +28,9 @@
         }
         .step-dot { width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; transition: all 0.2s; }
         .step-dot.active { background: #111827; width: 20px; border-radius: 4px; }
+        .rep-tab { background: #fff; color: #6b7280; border-color: #e5e7eb; }
+        .rep-tab:hover { border-color: #9ca3af; }
+        .rep-tab.active { background: #111827; color: #fff; border-color: #111827; }
     </style>
 </head>
 <body class="flex flex-col items-center justify-start min-h-screen p-4 sm:p-6 text-gray-900 antialiased relative">
@@ -74,16 +77,117 @@
         <button id="logBtn" class="w-full bg-gray-900 text-white py-4 rounded-2xl text-md font-medium tracking-wide shadow-sm hover:bg-gray-800 active:scale-[0.98] transition duration-150 ease-in-out">
             Log 1 Puff
         </button>
-        <button id="undoBtn" class="w-full -mt-3 text-gray-400 py-2 text-xs font-medium hover:text-gray-600 transition">
+        <div class="grid grid-cols-2 gap-3 -mt-1">
+            <button id="log3Btn" class="bg-gray-100 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-200 active:scale-[0.98] transition">+3 puffs</button>
+            <button id="log5Btn" class="bg-gray-100 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-200 active:scale-[0.98] transition">+5 puffs</button>
+        </div>
+        <button id="undoBtn" class="w-full -mt-2 text-gray-400 py-2 text-xs font-medium hover:text-gray-600 transition">
             &#8634; Undo last puff
         </button>
 
-        <div class="pt-2">
-            <p class="text-[10px] uppercase tracking-wider text-gray-400 mb-3 font-medium text-center">Longitudinal Tracking (7-Day)</p>
-            <div class="h-40 w-full">
-                <canvas id="analyticsChart"></canvas>
+        <!-- Report Tabs -->
+        <div class="border-t border-gray-100 pt-5 mt-4">
+            <div class="grid grid-cols-3 gap-2" id="reportTabs">
+                <button data-tab="daily" class="rep-tab py-2 rounded-xl text-sm font-medium border transition">Daily</button>
+                <button data-tab="weekly" class="rep-tab py-2 rounded-xl text-sm font-medium border transition">Weekly</button>
+                <button data-tab="monthly" class="rep-tab py-2 rounded-xl text-sm font-medium border transition">Monthly</button>
             </div>
-            <button onclick="openMonthly()" class="w-full mt-3 text-[11px] text-gray-400 hover:text-gray-600 font-medium transition">View 28-day monthly review &rarr;</button>
+            <div class="flex items-center gap-2 mt-3">
+                <label class="text-[10px] uppercase tracking-wider text-gray-400 font-medium whitespace-nowrap">View date</label>
+                <input type="date" id="reportDate" class="flex-1 text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700 focus:outline-none focus:border-gray-600 transition">
+                <button id="todayBtn" class="text-[11px] font-medium text-blue-600 hover:text-blue-800 whitespace-nowrap px-2">Today</button>
+            </div>
+            <p class="text-[9px] text-gray-400 mt-1" id="anchorHint"></p>
+        </div>
+
+        <!-- ===== DAILY REPORT PANEL ===== -->
+        <div id="panelDaily" class="report-panel pt-2">
+            <p class="text-[10px] uppercase tracking-wider text-gray-400 mb-1 font-medium text-center">Daily Report</p>
+            <p class="text-[11px] text-gray-500 text-center mb-3" id="dailyDateLabel">Today</p>
+            <div class="grid grid-cols-3 gap-2 mb-4">
+                <div class="bg-gray-50 rounded-xl p-2 text-center border border-gray-100">
+                    <p class="text-[9px] uppercase tracking-wider text-gray-400">Puffs</p>
+                    <p class="text-lg font-semibold text-gray-900" id="dRepTotal">0</p>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-2 text-center border border-gray-100">
+                    <p class="text-[9px] uppercase tracking-wider text-gray-400">Ceiling</p>
+                    <p class="text-lg font-semibold text-gray-900" id="dRepCeiling">-</p>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-2 text-center border border-gray-100">
+                    <p class="text-[9px] uppercase tracking-wider text-gray-400">vs Limit</p>
+                    <p class="text-lg font-semibold" id="dRepStatus">-</p>
+                </div>
+            </div>
+            <p class="text-[10px] uppercase tracking-wider text-gray-400 mb-2 font-medium">Puffs per hour</p>
+            <div class="h-36 w-full"><canvas id="dailyHourChart"></canvas></div>
+            <p class="text-[9px] text-gray-400 mt-2 leading-relaxed" id="dailyPeakText"></p>
+        </div>
+
+        <!-- ===== WEEKLY REPORT PANEL ===== -->
+        <div id="panelWeekly" class="report-panel pt-2 hidden">
+            <p class="text-[10px] uppercase tracking-wider text-gray-400 mb-1 font-medium text-center">Weekly Report</p>
+            <p class="text-[11px] text-gray-500 text-center mb-3" id="weeklyRangeLabel">Last 7 days</p>
+
+            <!-- Dependence vs last week -->
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                    <p class="text-[9px] uppercase tracking-wider text-gray-400">FTND</p>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-lg font-semibold text-gray-900" id="wFtndNow">-</span>
+                        <span class="text-[10px] text-gray-400">/10</span>
+                        <span class="text-xs font-bold ml-1" id="wFtndArrow"></span>
+                    </div>
+                    <p class="text-[9px] text-gray-400" id="wFtndPrev"></p>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                    <p class="text-[9px] uppercase tracking-wider text-gray-400">PS-ECDI</p>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-lg font-semibold text-gray-900" id="wEcdiNow">-</span>
+                        <span class="text-[10px] text-gray-400">/20</span>
+                        <span class="text-xs font-bold ml-1" id="wEcdiArrow"></span>
+                    </div>
+                    <p class="text-[9px] text-gray-400" id="wEcdiPrev"></p>
+                </div>
+            </div>
+
+            <!-- Summary stats -->
+            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 mb-4 space-y-2">
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">Total puffs</span><span class="text-sm font-semibold text-gray-900" id="wTotal">0</span></div>
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">Daily average</span><span class="text-sm font-semibold text-gray-900" id="wAvg">0</span></div>
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">On-target days</span><span class="text-sm font-bold text-green-600" id="wAdherence">-</span></div>
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">vs previous week</span><span class="text-sm font-bold" id="wCompare">-</span></div>
+            </div>
+
+            <p class="text-[10px] uppercase tracking-wider text-gray-400 mb-2 font-medium">Daily puffs (vs ceiling)</p>
+            <div class="h-36 w-full mb-4"><canvas id="weeklyDayChart"></canvas></div>
+
+            <p class="text-[10px] uppercase tracking-wider text-gray-400 mb-2 font-medium">Puffs by hour (week)</p>
+            <div class="h-32 w-full"><canvas id="weeklyHourChart"></canvas></div>
+            <p class="text-[9px] text-gray-400 mt-2 leading-relaxed" id="weeklyPeakText"></p>
+        </div>
+
+        <!-- ===== MONTHLY REPORT PANEL ===== -->
+        <div id="panelMonthly" class="report-panel pt-2 hidden">
+            <p class="text-[10px] uppercase tracking-wider text-gray-400 mb-1 font-medium text-center">Monthly Report</p>
+            <p class="text-[11px] text-gray-500 text-center mb-3" id="monthlyRangeLabel">Last 28 days</p>
+
+            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 mb-4 space-y-2">
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">Total puffs (28d)</span><span class="text-sm font-semibold text-gray-900" id="moTotal">0</span></div>
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">Daily average</span><span class="text-sm font-semibold text-gray-900" id="moAvg">0</span></div>
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">Zero-puff days</span><span class="text-sm font-bold text-green-600" id="moZero">0</span></div>
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">On-target days</span><span class="text-sm font-bold text-green-600" id="moAdherence">-</span></div>
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">vs previous 28 days</span><span class="text-sm font-bold" id="moCompare">-</span></div>
+            </div>
+
+            <p class="text-[10px] uppercase tracking-wider text-gray-400 mb-2 font-medium">Dependence trend (FTND / PS-ECDI)</p>
+            <div class="h-32 w-full mb-4"><canvas id="monthlyDepChart"></canvas></div>
+
+            <p class="text-[10px] uppercase tracking-wider text-gray-400 mb-2 font-medium">Daily puffs trend</p>
+            <div class="h-32 w-full mb-4"><canvas id="monthlyDayChart"></canvas></div>
+
+            <p class="text-[10px] uppercase tracking-wider text-gray-400 mb-2 font-medium">Puffs by hour (month)</p>
+            <div class="h-32 w-full"><canvas id="monthlyHourChart"></canvas></div>
+            <p class="text-[9px] text-gray-400 mt-2 leading-relaxed" id="monthlyPeakText"></p>
         </div>
 
         <div class="border-t border-gray-100 pt-5 mt-4">
@@ -127,7 +231,7 @@
         <div class="border-t border-gray-100 pt-5 mt-4">
             <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-3" id="planTitle">Taper Plan (your ceiling)</p>
             <div id="planTable" class="space-y-1"></div>
-            <p class="text-[9px] text-gray-400 mt-3 leading-relaxed">Ceiling = baseline puffs/day (from your FTND + PS-ECDI scores) &times; weekly reduction. Baseline anchored to POD-user data: mean ~123 puffs/day (EMIT study). Your current week is highlighted.</p>
+            <p class="text-[9px] text-gray-400 mt-3 leading-relaxed">Ceiling = baseline puffs/day (from your FTND + PS-ECDI scores) &times; weekly reduction. The ceiling is a hard limit, not a target &mdash; staying well below it is the goal. It is set deliberately far under typical real-world use (POD users average ~123 puffs/day, EMIT study) and steps down to zero. Your current week is highlighted.</p>
         </div>
 
         <!-- References Section (Restored in full) -->
@@ -224,24 +328,6 @@
         </div>
     </div>
 
-    <div id="monthlyModal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm hidden flex-col items-center justify-center p-4 z-50">
-        <div class="bg-white w-full max-w-sm rounded-3xl shadow-xl p-6 text-center space-y-4 relative overflow-hidden max-h-[90vh] overflow-y-auto">
-            <div class="absolute top-0 left-0 w-full h-2 bg-indigo-500"></div>
-            <h2 class="text-xl font-medium text-gray-900 mt-2">Monthly Review</h2>
-            <p class="text-xs text-gray-500" id="monthlyRangeText">Last 28 days</p>
-            <div class="bg-gray-50 rounded-2xl p-4 mt-2 text-left space-y-3">
-                <div class="flex justify-between items-center border-b border-gray-200 pb-2"><span class="text-sm text-gray-600">Total puffs (28d)</span><span class="text-lg font-semibold text-gray-900" id="mTotal">0</span></div>
-                <div class="flex justify-between items-center border-b border-gray-200 pb-2"><span class="text-sm text-gray-600">Daily average</span><span class="text-sm font-bold text-gray-900" id="mAvg">0</span></div>
-                <div class="flex justify-between items-center border-b border-gray-200 pb-2"><span class="text-sm text-gray-600">Trend vs first week</span><span class="text-sm font-bold" id="mTrend">-</span></div>
-                <div class="flex justify-between items-center border-b border-gray-200 pb-2"><span class="text-sm text-gray-600">Zero-puff days</span><span class="text-sm font-bold text-green-600" id="mZero">0</span></div>
-                <div class="flex justify-between items-center"><span class="text-sm text-gray-600">Dependence (FTND / ECDI)</span><span class="text-sm font-bold text-gray-900" id="mDep">- / -</span></div>
-            </div>
-            <div class="h-32 w-full mt-2"><canvas id="monthlyChart"></canvas></div>
-            <p class="text-xs text-gray-500 mt-2 px-2 text-left" id="mFeedback"></p>
-            <button onclick="closeMonthly()" class="w-full mt-2 bg-gray-900 text-white py-3 rounded-xl text-sm font-medium shadow-sm hover:bg-gray-800 transition">Close</button>
-        </div>
-    </div>
-
     <!-- Script Block / Logic Updates -->
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxIYaNvnUunRzFh2giTfkT7yNaZrJkAwlyzAmdThDhzMCqhCL0JZS2lvyrtbv3WXE4esQ/exec";
@@ -252,10 +338,14 @@
         let currentFTND = 0;
         let currentECDI = 0;
         let programWeeks = 6;
-        let chartInstance = null;
-        let monthlyChartInstance = null;
         let todayMood = null;
+        let activeTab = 'daily';
+        // report chart instances
+        let dailyHourChart = null, weeklyDayChart = null, weeklyHourChart = null;
+        let monthlyDepChart = null, monthlyDayChart = null, monthlyHourChart = null;
         const todayStr = new Date().toLocaleDateString('en-CA');
+        // วันอ้างอิงของ report (เปลี่ยนได้ผ่าน date picker) ค่าเริ่มต้น = วันนี้
+        let anchorDate = todayStr;
 
         const assessModal = document.getElementById('assessModal');
         const summaryModal = document.getElementById('summaryModal');
@@ -509,21 +599,38 @@
                     msgBox.className = "text-xs text-red-500 mt-3 px-4 font-medium";
                 }
             }
-            updateChart(data);
+            renderActiveReport();
         }
 
-        logBtn.addEventListener('click', function() {
+        // ★ helper: เพิ่ม puff ทีละหลายครั้ง (แต่ละครั้งมี timestamp + log แยก sync ขึ้น Sheet)
+        function addPuffs(n) {
             let data = getStorage();
-            const ts = new Date().toISOString();
-            const logId = generateUniqueID();
-            data.history[todayStr] = (data.history[todayStr] || 0) + 1;
             if (!data.timestamps[todayStr]) data.timestamps[todayStr] = [];
-            data.timestamps[todayStr].push(ts);
+            for (let i = 0; i < n; i++) {
+                const ts = new Date().toISOString();
+                const logId = generateUniqueID();
+                data.history[todayStr] = (data.history[todayStr] || 0) + 1;
+                data.timestamps[todayStr].push(ts);
+                postAction({ action: 'log', id: logId, ts: ts, date: todayStr });
+            }
             saveStorage(data);
+            snapToToday();
             refreshUI();
-            // ★ sync ไป Sheet ทันทีที่กด (ส่ง date เป็น YYYY-MM-DD ด้วย)
-            postAction({ action: 'log', id: logId, ts: ts, date: todayStr });
-        });
+        }
+
+        // เมื่อบันทึก/แก้ puff ของวันนี้ ให้ report เด้งกลับมาที่วันนี้
+        function snapToToday() {
+            if (anchorDate !== todayStr) {
+                anchorDate = todayStr;
+                const input = document.getElementById('reportDate');
+                if (input) input.value = todayStr;
+                updateAnchorHint();
+            }
+        }
+
+        logBtn.addEventListener('click', function() { addPuffs(1); });
+        document.getElementById('log3Btn').addEventListener('click', function() { addPuffs(3); });
+        document.getElementById('log5Btn').addEventListener('click', function() { addPuffs(5); });
 
         undoBtn.addEventListener('click', function() {
             let data = getStorage();
@@ -531,6 +638,7 @@
                 data.history[todayStr] -= 1;
                 if (data.timestamps[todayStr] && data.timestamps[todayStr].length) data.timestamps[todayStr].pop();
                 saveStorage(data);
+                snapToToday();
                 refreshUI();
                 postAction({ action: 'undo', date: todayStr });
             }
@@ -595,7 +703,9 @@
                     }
 
                     if (remote.config) {
-                        if (remote.config.startDate && remote.config.startDate !== 'NaN') data.startDate = remote.config.startDate;
+                        if (remote.config.startDate && remote.config.startDate !== 'NaN') {
+                            data.startDate = normalizeDateKey(remote.config.startDate) || remote.config.startDate;
+                        }
                         if (remote.config.programWeeks) data.programWeeks = parseInt(remote.config.programWeeks);
                         if (remote.config.baseline) data.baseline = parseInt(remote.config.baseline);
                     }
@@ -611,42 +721,355 @@
                 });
         }
 
-        function updateChart(data) {
-            const ctx = document.getElementById('analyticsChart').getContext('2d');
-            const dates = [];
-            for (let i = 6; i >= 0; i--) {
-                const d = new Date(); d.setDate(d.getDate() - i);
-                dates.push(d.toLocaleDateString('en-CA'));
+        // ===== REPORT ENGINE =====
+
+        // baseTarget จากคะแนนความติดปัจจุบัน
+        function currentBaseTarget() {
+            let fBand = currentFTND>=6?2:(currentFTND>=4?1:0);
+            let eBand = currentECDI>=13?3:(currentECDI>=9?2:(currentECDI>=4?1:0));
+            return Math.max([24,42,60][fBand], [24,42,60,78][eBand]);
+        }
+
+        // แปลง ISO timestamp -> ชั่วโมงท้องถิ่น 0-23
+        function hourOf(ts) {
+            const d = new Date(ts);
+            return isNaN(d.getTime()) ? null : d.getHours();
+        }
+
+        // นับความถี่ตามชั่วโมงจาก array ของ date keys
+        function hourHistogram(data, dateKeys) {
+            const bins = new Array(24).fill(0);
+            dateKeys.forEach(function(ds){
+                const arr = data.timestamps[ds] || [];
+                arr.forEach(function(ts){
+                    const h = hourOf(ts);
+                    if (h !== null) bins[h]++;
+                });
+            });
+            return bins;
+        }
+
+        // สร้างข้อความสรุปช่วงเวลาที่สูบมากสุด/ช่วงของวัน
+        function peakText(bins) {
+            const total = bins.reduce(function(s,v){return s+v;},0);
+            if (total === 0) return "No timestamped puffs in this period yet.";
+            let peakH = 0;
+            for (let i=1;i<24;i++) if (bins[i] > bins[peakH]) peakH = i;
+            const parts = { "Morning (5-11)":0, "Afternoon (12-17)":0, "Evening (18-23)":0, "Night (0-4)":0 };
+            for (let h=0;h<24;h++){
+                if (h>=5&&h<=11) parts["Morning (5-11)"]+=bins[h];
+                else if (h>=12&&h<=17) parts["Afternoon (12-17)"]+=bins[h];
+                else if (h>=18&&h<=23) parts["Evening (18-23)"]+=bins[h];
+                else parts["Night (0-4)"]+=bins[h];
             }
-            const actualData = dates.map(function(date){return data.history[date] || 0;});
-            const benchmarkData = dates.map(function(){return currentTarget;});
+            let topPart = Object.keys(parts).reduce(function(a,b){return parts[a]>=parts[b]?a:b;});
+            const pad = function(n){return (n<10?"0":"")+n;};
+            return "Peak hour: " + pad(peakH) + ":00\u2013" + pad(peakH) + ":59 (" + bins[peakH] + " puffs). Heaviest window: " + topPart + ".";
+        }
 
-            const labels = dates.map(function(date){return getSafeDate(date).toLocaleDateString('en-US', { weekday: 'short' });});
+        // สีของแท่งตาม ratio เทียบ ceiling
+        function barColor(actual, target) {
+            if (target === 0) return actual > 0 ? '#dc2626' : '#e5e7eb';
+            if (actual === 0) return '#e5e7eb';
+            const ratio = actual / target;
+            if (ratio <= 0.40) return '#fde047';
+            if (ratio <= 0.75) return '#f59e0b';
+            if (ratio <= 0.99) return '#ea580c';
+            if (ratio <= 1.20) return '#dc2626';
+            return '#991b1b';
+        }
 
-            const bgColors = actualData.map(function(actual, index){
-                const target = benchmarkData[index];
-                if (target === 0) return actual > 0 ? '#dc2626' : '#e5e7eb';
-                if (actual === 0) return '#e5e7eb';
-                const ratio = actual / target;
-                if (ratio <= 0.40) return '#fde047';
-                if (ratio <= 0.75) return '#f59e0b';
-                if (ratio <= 0.99) return '#ea580c';
-                if (ratio <= 1.20) return '#dc2626';
-                return '#991b1b';
+        const hourLabels = (function(){ const a=[]; for(let h=0;h<24;h++) a.push((h%6===0)?((h<10?"0":"")+h+":00"):""); return a; })();
+
+        function makeHourChart(canvasId, existing, bins) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            if (existing) existing.destroy();
+            return new Chart(ctx, {
+                type: 'line',
+                data: { labels: hourLabels, datasets: [{ data: bins, borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,0.10)', borderWidth:2, pointRadius:2, pointBackgroundColor:'#6366f1', fill:true, tension:0.3 }] },
+                options: { responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { callbacks: {
+                        title: function(items){ const i=items[0].dataIndex; const p=function(n){return(n<10?"0":"")+n;}; return p(i)+":00\u2013"+p(i)+":59"; },
+                        label: function(item){ return item.parsed.y + " puffs"; } } } },
+                    scales: { x: { grid: { display: false }, ticks: { font: { size: 8 }, color: '#9ca3af', maxRotation: 0, autoSkip: false }, title:{display:true,text:'Time of day',font:{size:8},color:'#9ca3af'} },
+                        y: { grid: { color: '#f9fafb' }, ticks: { beginAtZero: true, precision: 0, font: { size: 8 }, color: '#9ca3af' }, title:{display:true,text:'Puffs / hour',font:{size:8},color:'#9ca3af'} } } }
             });
+        }
 
-            if (chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
+        // ----- DAILY -----
+        // คำนวณเลขสัปดาห์ของโปรแกรม ณ วันที่กำหนด (อิง startDate)
+        function weekNumForDate(dateStr) {
+            const data = getStorage();
+            const start = getSafeDate(data.startDate);
+            const d = getSafeDate(dateStr);
+            let diff = Math.floor((d - start) / (1000*60*60*24));
+            if (isNaN(diff) || diff < 0) diff = 0;
+            return Math.floor(diff / 7) + 1;
+        }
+        // เพดาน (ceiling) ที่ใช้จริง ณ วันที่กำหนด
+        function ceilingForDate(dateStr) {
+            return ceilingForWeek(weekNumForDate(dateStr), currentBaseTarget());
+        }
+
+        function renderDaily() {
+            const data = getStorage();
+            const day = anchorDate;
+            const dayCeiling = ceilingForDate(day);
+            const total = data.history[day] || 0;
+            document.getElementById('dailyDateLabel').innerText = getSafeDate(day).toLocaleDateString('en-US', { weekday:'long', month:'short', day:'numeric' });
+            document.getElementById('dRepTotal').innerText = total;
+            document.getElementById('dRepCeiling').innerText = dayCeiling;
+            const st = document.getElementById('dRepStatus');
+            if (dayCeiling === 0) { st.innerText = total===0?"\u2713":"\u2715"; st.className = "text-lg font-semibold " + (total===0?"text-green-600":"text-red-600"); }
+            else if (total <= dayCeiling) { st.innerText = Math.round(total/dayCeiling*100)+"%"; st.className = "text-lg font-semibold text-green-600"; }
+            else { st.innerText = Math.round(total/dayCeiling*100)+"%"; st.className = "text-lg font-semibold text-red-600"; }
+
+            // time-series ปกติ: แกนนอน = ชั่วโมง 0-23, แกนตั้ง = จำนวน puff ในชั่วโมงนั้น
+            const bins = hourHistogram(data, [day]);
+            dailyHourChart = makeHourChart('dailyHourChart', dailyHourChart, bins);
+            document.getElementById('dailyPeakText').innerText = peakText(bins);
+        }
+
+        // ----- WEEKLY -----
+        // n วันสิ้นสุดที่ anchorDate ย้อนกลับไป (offset = จำนวนสัปดาห์/ช่วงที่ถอยเพิ่ม)
+        function lastNDates(n, offset) {
+            offset = offset || 0;
+            const arr = [];
+            const base = getSafeDate(anchorDate);
+            for (let i = n - 1 + offset; i >= offset; i--) {
+                const d = new Date(base); d.setDate(d.getDate() - i);
+                arr.push(d.toLocaleDateString('en-CA'));
+            }
+            return arr;
+        }
+
+        function sumDays(data, keys) {
+            let total = 0, logged = 0, over = 0, onTarget = 0;
+            keys.forEach(function(ds){
+                const v = data.history[ds];
+                if (v !== undefined) {
+                    logged++; total += v;
+                    const ceil = ceilingForDate(ds);
+                    if (v > ceil) over++; else onTarget++;
+                }
+            });
+            return { total: total, logged: logged, over: over, onTarget: onTarget,
+                     avg: logged ? Math.round(total/logged) : 0 };
+        }
+
+        // ดึง assessment ล่าสุด ณ ช่วงเวลาที่กำหนด (เอา entry ที่ date <= cutoff ล่าสุด)
+        function assessmentsSorted() {
+            const data = getStorage();
+            const arr = [];
+            for (let k in data.assessments) {
+                const a = data.assessments[k];
+                if (a && a.date) arr.push({ date: normalizeDateKey(a.date) || a.date, ftnd: a.ftnd, ecdi: a.ecdi, key: parseInt(k) });
+            }
+            arr.sort(function(x,y){ return x.date < y.date ? -1 : (x.date > y.date ? 1 : 0); });
+            return arr;
+        }
+
+        function renderWeekly() {
+            const data = getStorage();
+            const thisWeek = lastNDates(7, 0);
+            const prevWeek = lastNDates(7, 7);
+            document.getElementById('weeklyRangeLabel').innerText = thisWeek[0].slice(5) + " \u2192 " + thisWeek[6].slice(5);
+
+            // dependence: latest assessment up to anchor vs the one before it
+            // ★ เทียบวันที่แบบ string (YYYY-MM-DD) เลี่ยงปัญหา timezone ของ Date object
+            const aSorted = assessmentsSorted();
+            const upTo = aSorted.filter(function(a){ return normalizeDateKey(a.date) <= anchorDate; });
+            const nowA = upTo.length ? upTo[upTo.length-1] : null;
+            const prevA = upTo.length > 1 ? upTo[upTo.length-2] : null;
+            function setDep(nowVal, prevVal, elNow, elArrow, elPrev, max) {
+                document.getElementById(elNow).innerText = (nowVal!==null&&nowVal!==undefined)?nowVal:"-";
+                const arrow = document.getElementById(elArrow);
+                const prevEl = document.getElementById(elPrev);
+                if (prevVal===null||prevVal===undefined) {
+                    arrow.innerText="";
+                    prevEl.innerText = (nowVal!==null&&nowVal!==undefined) ? "first assessment" : "no data yet";
+                    return;
+                }
+                const diff = nowVal - prevVal;
+                if (diff < 0) { arrow.innerText = "\u2193"+Math.abs(diff); arrow.className="text-xs font-bold ml-1 text-green-600"; }
+                else if (diff > 0) { arrow.innerText = "\u2191"+diff; arrow.className="text-xs font-bold ml-1 text-red-500"; }
+                else { arrow.innerText = "\u2013"; arrow.className="text-xs font-bold ml-1 text-gray-400"; }
+                prevEl.innerText = "was " + prevVal;
+            }
+            setDep(nowA?nowA.ftnd:null, prevA?prevA.ftnd:null, 'wFtndNow','wFtndArrow','wFtndPrev',10);
+            setDep(nowA?nowA.ecdi:null, prevA?prevA.ecdi:null, 'wEcdiNow','wEcdiArrow','wEcdiPrev',20);
+
+            const cur = sumDays(data, thisWeek);
+            const prev = sumDays(data, prevWeek);
+            document.getElementById('wTotal').innerText = cur.total;
+            document.getElementById('wAvg').innerText = cur.avg + " /day";
+            const adh = cur.logged ? Math.round(cur.onTarget/cur.logged*100) : 0;
+            const adhEl = document.getElementById('wAdherence');
+            adhEl.innerText = cur.onTarget + "/" + cur.logged + " (" + adh + "%)";
+            adhEl.className = "text-sm font-bold " + (adh>=80?"text-green-600":adh>=50?"text-amber-500":"text-red-500");
+
+            const cmp = document.getElementById('wCompare');
+            if (prev.logged === 0) { cmp.innerText = "no prior week"; cmp.className="text-sm font-bold text-gray-400"; }
+            else {
+                const diff = cur.avg - prev.avg;
+                const pct = prev.avg>0 ? Math.round(diff/prev.avg*100) : 0;
+                if (diff < 0) { cmp.innerText = pct+"% \u2193 (was "+prev.avg+")"; cmp.className="text-sm font-bold text-green-600"; }
+                else if (diff > 0) { cmp.innerText = "+"+pct+"% \u2191 (was "+prev.avg+")"; cmp.className="text-sm font-bold text-red-500"; }
+                else { cmp.innerText = "same as last week"; cmp.className="text-sm font-bold text-gray-500"; }
+            }
+
+            // daily bar chart vs ceiling (per-day ceiling)
+            const dayVals = thisWeek.map(function(ds){ return data.history[ds] || 0; });
+            const dayCeils = thisWeek.map(function(ds){ return ceilingForDate(ds); });
+            const dayLabels = thisWeek.map(function(ds){ return getSafeDate(ds).toLocaleDateString('en-US',{weekday:'short'}); });
+            const colors = dayVals.map(function(v, i){ return barColor(v, dayCeils[i]); });
+            const ctx = document.getElementById('weeklyDayChart').getContext('2d');
+            if (weeklyDayChart) weeklyDayChart.destroy();
+            weeklyDayChart = new Chart(ctx, {
                 type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Puffs', data: actualData, backgroundColor: bgColors, borderRadius: 4, barPercentage: 0.5, order: 2 },
-                        { label: 'Target', data: benchmarkData, type: 'line', borderColor: '#9ca3af', borderWidth: 1.5, borderDash: [3, 3], pointRadius: 0, fill: false, order: 1, tension: 0 }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 9 }, color: '#9ca3af' } }, y: { grid: { color: '#f9fafb' }, ticks: { beginAtZero: true, font: { size: 9 }, color: '#9ca3af' } } } }
+                data: { labels: dayLabels, datasets: [
+                    { label:'Puffs', data: dayVals, backgroundColor: colors, borderRadius: 4, barPercentage: 0.6, order: 2 },
+                    { label:'Ceiling', type:'line', data: dayCeils, borderColor:'#9ca3af', borderWidth:1.5, borderDash:[3,3], pointRadius:0, fill:false, order:1, stepped:true }
+                ] },
+                options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}, ticks:{font:{size:9},color:'#9ca3af'}}, y:{grid:{color:'#f9fafb'}, ticks:{beginAtZero:true,precision:0,font:{size:9},color:'#9ca3af'}} } }
             });
+
+            const bins = hourHistogram(data, thisWeek);
+            weeklyHourChart = makeHourChart('weeklyHourChart', weeklyHourChart, bins);
+            document.getElementById('weeklyPeakText').innerText = peakText(bins);
+        }
+
+        // ----- MONTHLY -----
+        function renderMonthly() {
+            const data = getStorage();
+            const days = lastNDates(28, 0);
+            const prevDays = lastNDates(28, 28);
+            document.getElementById('monthlyRangeLabel').innerText = days[0].slice(5) + " \u2192 " + days[27].slice(5);
+
+            const vals = days.map(function(ds){ return data.history[ds]; });
+            const logged = vals.filter(function(v){ return v !== undefined; });
+            const total = logged.reduce(function(s,v){ return s+v; }, 0);
+            const avg = logged.length ? Math.round(total/logged.length) : 0;
+            const zeroDays = logged.filter(function(v){ return v === 0; }).length;
+            let onTarget = 0;
+            days.forEach(function(ds){ const v = data.history[ds]; if (v !== undefined && v <= ceilingForDate(ds)) onTarget++; });
+
+            document.getElementById('moTotal').innerText = total;
+            document.getElementById('moAvg').innerText = avg + " /day";
+            document.getElementById('moZero').innerText = zeroDays + " days";
+            const adh = logged.length ? Math.round(onTarget/logged.length*100) : 0;
+            const adhEl = document.getElementById('moAdherence');
+            adhEl.innerText = onTarget + "/" + logged.length + " (" + adh + "%)";
+            adhEl.className = "text-sm font-bold " + (adh>=80?"text-green-600":adh>=50?"text-amber-500":"text-red-500");
+
+            // vs previous 28 days
+            const prevVals = prevDays.map(function(ds){ return data.history[ds]; }).filter(function(v){return v!==undefined;});
+            const prevAvg = prevVals.length ? Math.round(prevVals.reduce(function(s,v){return s+v;},0)/prevVals.length) : 0;
+            const cmp = document.getElementById('moCompare');
+            if (prevVals.length === 0) { cmp.innerText = "no prior period"; cmp.className="text-sm font-bold text-gray-400"; }
+            else {
+                const diff = avg - prevAvg;
+                const pct = prevAvg>0 ? Math.round(diff/prevAvg*100) : 0;
+                if (diff < 0) { cmp.innerText = pct+"% \u2193 (was "+prevAvg+")"; cmp.className="text-sm font-bold text-green-600"; }
+                else if (diff > 0) { cmp.innerText = "+"+pct+"% \u2191 (was "+prevAvg+")"; cmp.className="text-sm font-bold text-red-500"; }
+                else { cmp.innerText = "same as last period"; cmp.className="text-sm font-bold text-gray-500"; }
+            }
+
+            // dependence trend line (assessments within the 28-day window ending at anchor)
+            // ★ เทียบวันที่แบบ string เลี่ยง timezone; ถ้ามีจุดเดียวก็ยังโชว์เป็นจุดใหญ่
+            const aSorted = assessmentsSorted();
+            const startWin = lastNDates(28, 0)[0]; // วันแรกของหน้าต่าง 28 วัน (YYYY-MM-DD)
+            let pts = aSorted.filter(function(a){ const k = normalizeDateKey(a.date); return k >= startWin && k <= anchorDate; });
+            if (pts.length < 1) pts = aSorted.filter(function(a){ return normalizeDateKey(a.date) <= anchorDate; }).slice(-5);
+            const onePoint = pts.length === 1;
+            const depLabels = pts.map(function(a){ return normalizeDateKey(a.date).slice(5); });
+            const ctxD = document.getElementById('monthlyDepChart').getContext('2d');
+            if (monthlyDepChart) monthlyDepChart.destroy();
+            monthlyDepChart = new Chart(ctxD, {
+                type: 'line',
+                data: { labels: depLabels, datasets: [
+                    { label:'FTND', data: pts.map(function(a){return a.ftnd;}), borderColor:'#0ea5e9', backgroundColor:'#0ea5e9', borderWidth:2, pointRadius: onePoint?5:3, tension:0.2, yAxisID:'yF' },
+                    { label:'PS-ECDI', data: pts.map(function(a){return a.ecdi;}), borderColor:'#f43f5e', backgroundColor:'#f43f5e', borderWidth:2, pointRadius: onePoint?5:3, tension:0.2, yAxisID:'yE' }
+                ] },
+                options: { responsive:true, maintainAspectRatio:false,
+                    plugins:{legend:{display:true, labels:{font:{size:9}, boxWidth:10}}},
+                    scales:{ x:{grid:{display:false}, ticks:{font:{size:8},color:'#9ca3af'}},
+                        yF:{position:'left', min:0, max:10, grid:{color:'#f9fafb'}, ticks:{font:{size:8},color:'#0ea5e9'}, title:{display:true,text:'FTND',font:{size:8},color:'#0ea5e9'}},
+                        yE:{position:'right', min:0, max:20, grid:{display:false}, ticks:{font:{size:8},color:'#f43f5e'}, title:{display:true,text:'ECDI',font:{size:8},color:'#f43f5e'}} } }
+            });
+
+            // daily puffs trend
+            const plotVals = vals.map(function(v){ return v === undefined ? null : v; });
+            // แสดงจุดเฉพาะวันที่มีข้อมูล (กันกรณีข้อมูลน้อยแล้วมองไม่เห็นเส้น)
+            const ptRadius = plotVals.map(function(v){ return v === null ? 0 : 3; });
+            const loggedCount = plotVals.filter(function(v){ return v !== null; }).length;
+            const labels = days.map(function(ds, i){ return (i % 7 === 0) ? ds.slice(5) : ""; });
+            const ctxDay = document.getElementById('monthlyDayChart').getContext('2d');
+            if (monthlyDayChart) monthlyDayChart.destroy();
+            monthlyDayChart = new Chart(ctxDay, {
+                type: 'line',
+                data: { labels: labels, datasets: [
+                    { data: plotVals, borderColor:'#6366f1', backgroundColor:'#6366f1', pointBackgroundColor:'#6366f1', borderWidth:2, pointRadius: ptRadius, fill: loggedCount>1, tension:0.3, spanGaps:true, order:2 },
+                    { label:'Ceiling', data: days.map(function(ds){return ceilingForDate(ds);}), borderColor:'#9ca3af', borderWidth:1, borderDash:[3,3], pointRadius:0, fill:false, order:1, stepped:true }
+                ] },
+                options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}, ticks:{font:{size:8},color:'#9ca3af',maxRotation:0}}, y:{grid:{color:'#f9fafb'}, ticks:{beginAtZero:true,precision:0,font:{size:8},color:'#9ca3af'}} } }
+            });
+
+            const bins = hourHistogram(data, days);
+            monthlyHourChart = makeHourChart('monthlyHourChart', monthlyHourChart, bins);
+            document.getElementById('monthlyPeakText').innerText = peakText(bins);
+        }
+
+        function renderActiveReport() {
+            if (activeTab === 'daily') renderDaily();
+            else if (activeTab === 'weekly') renderWeekly();
+            else if (activeTab === 'monthly') renderMonthly();
+        }
+
+        function setupReportTabs() {
+            document.querySelectorAll('.rep-tab').forEach(function(btn){
+                btn.classList.toggle('active', btn.dataset.tab === activeTab);
+                btn.onclick = function() {
+                    activeTab = btn.dataset.tab;
+                    document.querySelectorAll('.rep-tab').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === activeTab); });
+                    document.getElementById('panelDaily').classList.toggle('hidden', activeTab!=='daily');
+                    document.getElementById('panelWeekly').classList.toggle('hidden', activeTab!=='weekly');
+                    document.getElementById('panelMonthly').classList.toggle('hidden', activeTab!=='monthly');
+                    updateAnchorHint();
+                    renderActiveReport();
+                };
+            });
+        }
+
+        function updateAnchorHint() {
+            const hint = document.getElementById('anchorHint');
+            if (anchorDate === todayStr) { hint.innerText = "Showing latest (today)."; }
+            else {
+                const lbl = { daily: "that day", weekly: "the 7 days ending on that date", monthly: "the 28 days ending on that date" }[activeTab];
+                hint.innerText = "Viewing history \u2014 " + lbl + " (ending " + anchorDate + ").";
+            }
+        }
+
+        function setupDatePicker() {
+            const input = document.getElementById('reportDate');
+            input.max = todayStr;                 // ห้ามเลือกอนาคต
+            const data = getStorage();
+            if (data.startDate && /^\d{4}-\d{2}-\d{2}$/.test(data.startDate)) input.min = data.startDate;
+            input.value = anchorDate;
+            input.addEventListener('change', function() {
+                const v = input.value;
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
+                anchorDate = v;
+                updateAnchorHint();
+                renderActiveReport();
+            });
+            document.getElementById('todayBtn').addEventListener('click', function() {
+                anchorDate = todayStr;
+                input.value = todayStr;
+                updateAnchorHint();
+                renderActiveReport();
+            });
+            updateAnchorHint();
         }
 
         // ตรวจสอบและยืนยันการทำงานของ Weekly Summary
@@ -739,74 +1162,7 @@
             });
         }
 
-        // ตรวจสอบและยืนยันการทำงานของ Monthly Stats
-        function buildMonthlyStats() {
-            const data = getStorage();
-            const days = [];
-            // ดึงข้อมูล 28 วันย้อนหลัง
-            for (let i = 27; i >= 0; i--) {
-                const d = new Date(); d.setDate(d.getDate() - i);
-                days.push(d.toLocaleDateString('en-CA'));
-            }
-            const vals = days.map(function(ds){ return data.history[ds]; });
-            const logged = vals.filter(function(v){ return v !== undefined; });
-            const total = logged.reduce(function(s,v){ return s+v; }, 0);
-            const avg = logged.length ? Math.round(total/logged.length) : 0;
-            const zeroDays = logged.filter(function(v){ return v === 0; }).length;
-
-            // วัดค่าเทรนด์: เอา 7 วันแรก เทียบกับ 7 วันหลังสุด
-            const first7 = vals.slice(0,7).filter(function(v){return v!==undefined;});
-            const last7 = vals.slice(21).filter(function(v){return v!==undefined;});
-            const firstAvg = first7.length ? first7.reduce(function(s,v){return s+v;},0)/first7.length : 0;
-            const lastAvg = last7.length ? last7.reduce(function(s,v){return s+v;},0)/last7.length : 0;
-            let trendPct = firstAvg > 0 ? Math.round((lastAvg - firstAvg)/firstAvg*100) : 0;
-            return { days: days, vals: vals, total: total, avg: avg, zeroDays: zeroDays,
-                     firstAvg: firstAvg, lastAvg: lastAvg, trendPct: trendPct };
-        }
-
-        function openMonthly() {
-            const s = buildMonthlyStats();
-            document.getElementById('mTotal').innerText = s.total;
-            document.getElementById('mAvg').innerText = s.avg + " puffs/day";
-            document.getElementById('mZero').innerText = s.zeroDays + " days";
-            document.getElementById('mDep').innerText = currentFTND + "/10 \u00b7 " + currentECDI + "/20";
-
-            const trendEl = document.getElementById('mTrend');
-            if (s.trendPct < -5) { trendEl.innerText = s.trendPct + "% \u2193"; trendEl.className = "text-sm font-bold text-green-600"; }
-            else if (s.trendPct > 5) { trendEl.innerText = "+" + s.trendPct + "% \u2191"; trendEl.className = "text-sm font-bold text-red-500"; }
-            else { trendEl.innerText = "stable"; trendEl.className = "text-sm font-bold text-gray-500"; }
-
-            const fb = document.getElementById('mFeedback');
-            if (s.lastAvg === 0 && s.firstAvg > 0) {
-                fb.innerText = "Remarkable \u2014 you've reached zero over the last week. Focus now on staying quit and watching for high-risk triggers.";
-            } else if (s.trendPct < -40) {
-                fb.innerText = "Strong downward trend (" + s.trendPct + "%). You're cutting substantially month-over-month. Stay with the schedule \u2014 the hardest part is behind you.";
-            } else if (s.trendPct < -10) {
-                fb.innerText = "Clear progress (" + s.trendPct + "%). Steady reduction is exactly the goal. Keep stretching intervals and holding each week's ceiling.";
-            } else if (s.trendPct <= 5) {
-                fb.innerHTML = "Consumption has plateaued this month. Plateaus are common \u2014 try a firmer ceiling or a shorter program, and target your top trigger. <span class='block mt-1 text-gray-500'>Clinical practice guidelines (USPSTF 2021; German S3 2022) advise that if behavioural reduction alone stalls, combining it with approved pharmacotherapy (NRT / varenicline / bupropion) under a clinician improves quit rates. See references below.</span>";
-            } else {
-                fb.innerHTML = "Puffs rose this month. That's a signal, not a failure. Revisit your triggers and re-set a realistic ceiling. <span class='block mt-1 text-gray-500'>Guidelines (USPSTF 2021; German S3 Tobacco Guideline 2022) recommend that people who cannot quit with behavioural methods alone be offered approved cessation medication plus counselling by a clinician or pharmacist. See references below.</span>";
-            }
-
-            const ctx = document.getElementById('monthlyChart').getContext('2d');
-            const labels = s.days.map(function(ds, i){ return (i % 7 === 0) ? ds.slice(5) : ""; });
-            const plotVals = s.vals.map(function(v){ return v === undefined ? null : v; });
-            if (monthlyChartInstance) monthlyChartInstance.destroy();
-            monthlyChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: { labels: labels, datasets: [{ data: plotVals, borderColor: '#6366f1', borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: 'rgba(99,102,241,0.08)', tension: 0.3, spanGaps: true }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 8 }, color: '#9ca3af', maxRotation: 0 } }, y: { grid: { color: '#f9fafb' }, ticks: { beginAtZero: true, font: { size: 8 }, color: '#9ca3af' } } } }
-            });
-
-            document.getElementById('monthlyModal').classList.remove('hidden');
-            document.getElementById('monthlyModal').classList.add('flex');
-        }
-        function closeMonthly() {
-            document.getElementById('monthlyModal').classList.add('hidden');
-            document.getElementById('monthlyModal').classList.remove('flex');
-        }
-
+        // auto-open monthly tab every 28 days from start
         function checkMonthlyAuto() {
             let data = getStorage();
             const start = getSafeDate(data.startDate);
@@ -819,11 +1175,20 @@
                 if (data.lastMonthlyShown !== monthKey) {
                     data.lastMonthlyShown = monthKey;
                     saveStorage(data);
-                    setTimeout(openMonthly, 600);
+                    setTimeout(function(){
+                        activeTab = 'monthly';
+                        setupReportTabs();
+                        document.getElementById('panelDaily').classList.add('hidden');
+                        document.getElementById('panelWeekly').classList.add('hidden');
+                        document.getElementById('panelMonthly').classList.remove('hidden');
+                        renderActiveReport();
+                    }, 600);
                 }
             }
         }
 
+        setupReportTabs();
+        setupDatePicker();
         initApp();
         checkMonthlyAuto();
     </script>

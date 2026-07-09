@@ -1,6 +1,6 @@
 # Step Down — Clinical Vape Tapering Tracker
 
-A tracker for quitting or reducing closed-system (pod) e-cigarette use through behavioural frequency modification rather than nicotine dilution. It records daily data and syncs to Google Sheets via Google Apps Script.
+A tracker for quitting or reducing closed-system (pod) e-cigarette use through behavioural frequency modification rather than nicotine dilution. It records daily data, visualises progress in Daily / Weekly / Monthly reports, and syncs to Google Sheets via Google Apps Script.
 
 > **Disclaimer:** This tool is a framework for personal data collection and longitudinal tracking. It is not medical advice, diagnosis, or behavioural therapy. Please consult a healthcare professional for personalised guidance.
 
@@ -8,13 +8,44 @@ A tracker for quitting or reducing closed-system (pod) e-cigarette use through b
 
 ## Key Features
 
-- **Daily puff counter** with Log / Undo buttons
+- **Quick logging** — Log 1 puff, or batch **+3 / +5** puffs; each puff is stored with its own timestamp
+- **Undo** the last puff
 - **Nicotine dependence assessment** using FTND (0–10) and the Penn State ECDI (0–20), taken weekly
 - **Automatic taper plan** — computes a daily puff ceiling from dependence scores, then steps it down linearly to zero over the chosen program length
 - **Selectable program length** of 4 / 6 / 8 weeks
-- **Progress charts** — 7-day tracking and a 28-day monthly review (trend, daily average, zero-puff days)
+- **Daily / Weekly / Monthly reports** in switchable tabs (see below)
+- **Date picker** to view any past Daily, Weekly, or Monthly report; a **Today** button jumps back to the present
 - **Daily mood and trigger notes**
 - **Google Sheets sync** with a local (localStorage) fallback when offline
+
+---
+
+## Reports
+
+Three tabs, each anchored to the date chosen in the picker (defaults to today). All hourly charts are line charts (x = hour of day, y = puffs/hour).
+
+### Daily
+- Puffs, ceiling, and % of ceiling for the selected day
+- **Line chart** of puffs per hour
+- Peak-hour and heaviest-window summary
+
+### Weekly (7 days ending on the selected date)
+- **FTND and PS-ECDI shown as numbers with ↑/↓ arrows vs the previous assessment** (a single assessment is shown as the current value labelled "first assessment")
+- Total puffs, daily average, on-target days
+- **Daily puffs bar chart vs the ceiling** (bar colour reflects how close to the ceiling)
+- Puffs-per-hour line chart for the week
+- Comparison vs the previous week
+
+### Monthly (28 days ending on the selected date)
+- **FTND and PS-ECDI trend line** (dual axis) from all assessments in the window
+- Daily puffs trend line vs the ceiling
+- Puffs-per-hour line chart for the month
+- Total puffs, daily average, zero-puff days, on-target days
+- Comparison vs the previous 28 days
+
+> All ceilings and adherence figures are computed **per day**, using the ceiling that applied in that day's program week — so historical reports remain accurate even as the ceiling steps down over time.
+
+> **Sparse data:** Trend lines only look like lines once several days / multiple assessments exist. With just one data point (e.g. on your first day) the chart shows a single dot rather than a line — this is expected, not a bug.
 
 ---
 
@@ -69,7 +100,7 @@ final week = 0 (quit)
 
 The app is a single-file HTML page that loads Tailwind and Chart.js via CDN — no build step required.
 
-> **After pushing an update:** GitHub Pages may serve a cached copy. Wait for the deploy to finish, then hard-refresh or append a cache-buster to the URL (e.g. `?v=5`).
+> **After pushing an update:** GitHub Pages may serve a cached copy. Wait for the deploy to finish, then hard-refresh or append a cache-buster to the URL (e.g. `?v=13`).
 
 ---
 
@@ -83,12 +114,12 @@ The app exchanges data with a Google Apps Script (GAS) web app bound to a Google
 ### Data flow
 
 - **On app open:** `doGet` returns JSON (`logs`, `assessments`, `config`, `mood`, `notes`), and the app counts daily puffs from `logs`
-- **On Log 1 Puff:** `doPost` writes a new log to the sheet immediately (`action: log`)
+- **On each logged puff (incl. +3 / +5):** `doPost` writes a new log row immediately (`action: log`), one row per puff
 - **Also synced:** assessments (`assess`), mood/notes (`meta`), and program settings (`config`)
 
 ### Note on dates (important)
 
-The app normalises the sheet's `date`/`timestamp` values to `YYYY-MM-DD` so the keys always match the current local date. Without this step, the puff count shows 0 every time the app opens.
+Dates are handled as `YYYY-MM-DD` strings throughout — including when normalising the sheet's `date`, `timestamp`, and `config.startDate` values, and when comparing assessment dates against the report's anchor date. This string-based comparison avoids timezone drift (a UTC `Date` object can land on the wrong local day), which otherwise caused the puff count and dependence values to disappear.
 
 > **Timezone caveat:** `timestamp` is in UTC. If used in the evening (GMT+07:00), the date derived from UTC may roll over to the next day. To anchor strictly to local (Thai) time, use the `date` column from GAS instead.
 
