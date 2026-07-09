@@ -1,39 +1,59 @@
-# Step Down: Clinical Tapering Protocol & Longitudinal Tracker
+# Step Down - Clinical Protocol Vape Tracker
 
-A robust, web-based clinical tracking application designed to systematically monitor and manage Electronic Nicotine Delivery Systems (ENDS) tapering. This tool utilizes Cognitive Behavioral Therapy (CBT) principles and dynamic benchmarking to provide a structured 8-week step-down protocol, complete with automated data synchronization for longitudinal statistical analysis.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Mobile First](https://img.shields.io/badge/UI-Mobile_First-brightgreen.svg)]()
+[![Backend](https://img.shields.io/badge/Backend-Google_Apps_Script-yellow.svg)]()
 
-## 🌟 Core Clinical Features
+**Step Down** is a mobile-first web application designed to facilitate structured e-cigarette tapering based on clinical protocols (CBT principles). It tracks nicotine dependence and calculates a dynamic, personalized daily puff ceiling to help users gradually step down their consumption to zero.
 
-* **Dual-Protocol Assessment:** Integrates both the **FTND-V (Vaping Adapted Standard)** and the **ECDI (Penn State Electronic Cigarette Dependence Index)**. Users can choose their preferred clinical protocol at the start of each week to recalibrate the tapering threshold.
-* **Dynamic Tapering Algorithm:** Automatically calculates and adjusts daily puff benchmarks based on the clinical score obtained from the chosen assessment protocol.
-* **Heatmap Analytics:** Features a 7-day longitudinal tracking chart with dynamic heatmap color-coding (from yellow to dark red) to visually represent adherence severity relative to the daily benchmark.
-* **Comprehensive Clinical Reports (Weekly & Monthly):** Automatically generates end-of-week and end-of-month summaries. These reports calculate total puff volumes, evaluate adherence, and provide structured clinical feedback with synchronized visual cues.
-* **Independent Mood & Trigger Tracking:** Features optional daily affective state logging (via emojis) and a dedicated text input for users to qualitatively record daily triggers, cravings, or withdrawal symptoms.
-* **Relapse Management:** Automatically switches to a "Relapse" protocol once the daily target reaches zero, distinctively tagging post-abstinence usage for accurate survival analysis.
-* **Cloud Data Synchronization:** Seamlessly logs multivariate data points directly into Google Sheets in real-time, creating a clean, structured dataset ready for advanced statistical evaluation.
+## ✨ Key Features
 
-## 📊 Dataset Structure (Google Sheets)
+* **Clinical Assessments:** Evaluates nicotine dependence weekly using standard instruments:
+  * *Fagerström Test for Nicotine Dependence (FTND)*
+  * *Penn State E-Cigarette Dependence Index (PS-ECDI)*
+* **Dynamic Tapering Algorithm:** Automatically calculates a daily puff ceiling based on the user's dependence scores and selected program length (4, 6, or 8 weeks).
+* **Longitudinal Tracking & Analytics:** Visualizes progress with a 7-day adherence bar chart and a 28-day monthly review line chart.
+* **Trigger & Mood Journaling:** Allows users to log their emotional states and specific cravings/triggers alongside their puff data.
+* **Offline-First & Cloud Sync:** Puffs are instantly logged to the device's Local Storage (preventing data loss during offline periods) and silently synced to Google Sheets in the background.
 
-To utilize the automated cloud backup, set up a Google Sheet with the following headers in Row 1 (Columns A through I):
+## 🛠️ Technology Stack
 
-| Column | Header | Description |
-| :--- | :--- | :--- |
-| A | `Date` | Local date of the logged event (YYYY-MM-DD). |
-| B | `Time` | Local time of the logged event (HH:MM:SS). |
-| C | `Puff Count` | Cumulative number of puffs taken on that specific date. |
-| D | `Daily Target` | The dynamically calculated benchmark for the day. |
-| E | `Status` | Adherence status (`On Track`, `Over Limit`, or `Relapse`). |
-| F | `Week` | The current active week of the 8-week protocol. |
-| G | `FTND Score` | The score (0-10 or 0-20) from the chosen protocol. |
-| H | `Mood` | The self-reported affective state. |
-| I | `Notes` | Qualitative data regarding triggers, cravings, or context. |
+* **Frontend:** HTML5, Vanilla JavaScript
+* **Styling:** Tailwind CSS (via CDN)
+* **Data Visualization:** Chart.js
+* **Backend / Database:** Google Apps Script (GAS) & Google Sheets
 
-## 🚀 Deployment Guide
+## ⚙️ Installation & Setup
 
-### 1. Backend Setup (Google Apps Script)
-1. Create a new Google Sheet matching the structure above.
-2. Navigate to **Extensions > Apps Script**.
-3. Deploy the following script as a **Web App** (Access: Anyone):
+To deploy your own instance of Step Down, you need to set up a Google Sheet as the database and update the frontend configuration.
+
+### Step 1: Database Setup (Google Sheets)
+1. Create a new Google Sheet.
+2. Create **4 specific tabs (sheets)** exactly as named below, and populate the **first row** of each with these exact headers:
+   * Sheet Name: `logs`
+     * Headers: `A1: log_id` | `B1: timestamp` | `C1: date`
+   * Sheet Name: `assessments`
+     * Headers: `A1: assessKey` | `B1: ftnd` | `C1: ecdi` | `D1: date`
+   * Sheet Name: `config`
+     * Headers: `A1: key` | `B1: value` | `C1: date`
+   * Sheet Name: `meta`
+     * Headers: `A1: date` | `B1: mood` | `C1: note`
+
+### Step 2: Backend Setup (Google Apps Script)
+1. In your Google Sheet, go to **Extensions > Apps Script**.
+2. Replace the default `Code.gs` content with your backend script (handling `doGet` and `doPost`).
+3. Click **Deploy > New deployment**.
+4. Select type **Web App**.
+   * *Execute as:* Me
+   * *Who has access:* Anyone
+5. Click **Deploy** and copy the generated **Web App URL**.
+
+### Step 3: Frontend Setup
+1. Open `index.html`.
+2. Locate the configuration section in the `<script>` tag.
+3. Replace the `GAS_URL` variable with the Web App URL you obtained in Step 2:
+   ```javascript
+   const GAS_URL = "YOUR_WEB_APP_URL_HERE";3. Deploy the following script as a **Web App** (Access: Anyone):
 
 ```javascript
 var SHEET_LOGS = 'logs';
