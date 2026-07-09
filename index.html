@@ -696,8 +696,8 @@
         function renderPlanTable() {
             let fBand = currentFTND>=6?2:(currentFTND>=4?1:0);
             let eBand = currentECDI>=13?3:(currentECDI>=9?2:(currentECDI>=4?1:0));
-            const ftndBase = [40,70,100][fBand];
-            const ecdiBase = [40,70,100,130][eBand];
+            const ftndBase = [32,56,80][fBand];
+            const ecdiBase = [32,56,80,104][eBand];
             const baseTarget = Math.max(ftndBase, ecdiBase);
             document.getElementById('planTitle').innerText = programWeeks + "-Week Taper Plan (your ceiling)";
             const box = document.getElementById('planTable');
