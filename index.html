@@ -442,8 +442,8 @@
             else if (currentECDI >= 4) { eLabel.innerText="Medium"; eLabel.className="text-sm font-bold text-amber-500"; eBand=1; }
             else { eLabel.innerText="Low"; eLabel.className="text-sm font-bold text-green-600"; eBand=0; }
 
-            const ftndBase = [40, 70, 100][fBand];
-            const ecdiBase = [40, 70, 100, 130][eBand];
+            const ftndBase = [32, 56, 80][fBand];
+            const ecdiBase = [32, 56, 80, 104][eBand];
             let baseTarget = Math.max(ftndBase, ecdiBase);
 
             currentTarget = ceilingForWeek(currentWeek, baseTarget);
@@ -653,7 +653,7 @@
         function showWeeklySummary(data, weekNum) {
             let fBand = currentFTND>=6?2:(currentFTND>=4?1:0);
             let eBand = currentECDI>=13?3:(currentECDI>=9?2:(currentECDI>=4?1:0));
-            const baseTarget = Math.max([40,70,100][fBand], [40,70,100,130][eBand]);
+            const baseTarget = Math.max([32,56,80][fBand], [32,56,80,104][eBand]);
             const weekCeiling = ceilingForWeek(weekNum, baseTarget);
 
             let totalPuffs = 0, daysOver = 0, daysLogged = 0;
