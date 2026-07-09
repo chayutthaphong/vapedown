@@ -224,14 +224,21 @@
         const undoBtn = document.getElementById('undoBtn');
         const noteInput = document.getElementById('dailyNote');
 
-        // ฟังก์ชันใหม่: ป้องกันการเกิดบั๊ก NaN บน Safari (iOS)
+        // ฟังก์ชันใหม่: ป้องกันการเกิดบั๊ก NaN แบบ 100% (มีระบบ Auto-heal)
         function getSafeDate(dateString) {
-            if (!dateString) return new Date();
+            if (!dateString || dateString === 'undefined' || dateString === 'null') {
+                return new Date();
+            }
             let safeStr = String(dateString).split('T')[0].replace(/-/g, '/');
-            return new Date(safeStr);
+            let parsedDate = new Date(safeStr);
+            
+            if (isNaN(parsedDate.getTime())) {
+                return new Date();
+            }
+            return parsedDate;
         }
 
-        // ฟังก์ชันใหม่: สร้างรหัส ID ที่ไม่ซ้ำกันสำหรับแต่ละ Log
+        // ฟังก์ชันสร้างรหัส ID ที่ไม่ซ้ำกันสำหรับแต่ละ Log
         function generateUniqueID() {
             return 'LOG-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 5);
         }
@@ -261,7 +268,6 @@
         function initApp() {
             let d0 = getStorage();
             if (!d0.startDate) { d0.startDate = todayStr; saveStorage(d0);
-                // แนบ date เข้าไปด้วย สำหรับ Config
                 if (cloudEnabled()) postAction({ action: 'config', key: 'startDate', value: todayStr, date: new Date().toISOString() }); }
 
             fetchFromSheets().then(function(){
@@ -271,12 +277,19 @@
 
         function renderFromState() {
             let data = getStorage();
-            if (!data.startDate) { data.startDate = todayStr; saveStorage(data); }
             
-            // แก้ไขการอ่านค่าวันที่
+            // ล้างบางข้อมูลเก่าที่อาจจะพังค้างอยู่ในมือถือ
+            if (!data.startDate || data.startDate === 'undefined' || data.startDate === 'null') { 
+                data.startDate = todayStr; 
+                saveStorage(data); 
+            }
+            
             const start = getSafeDate(data.startDate);
             const now = getSafeDate(todayStr);
-            const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+            let diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+            
+            // ป้องกัน diffDays ติดลบหรือเป็น NaN
+            if (isNaN(diffDays) || diffDays < 0) diffDays = 0;
             
             programWeeks = data.programWeeks || 6;
             currentWeek = Math.floor(diffDays / 7) + 1;
@@ -341,10 +354,10 @@
             currentECDI = ecdi;
 
             const data = getStorage();
-            // แก้ไขการอ่านค่าวันที่
             const start = getSafeDate(data.startDate);
             const now = getSafeDate(todayStr);
-            const diffDays = Math.floor((now - start) / (1000*60*60*24));
+            let diffDays = Math.floor((now - start) / (1000*60*60*24));
+            if (isNaN(diffDays) || diffDays < 0) diffDays = 0;
             const assessKey = getAssessmentDayIndex(diffDays);
 
             data.assessments[assessKey] = { ftnd: ftnd, ecdi: ecdi, date: todayStr };
@@ -445,7 +458,6 @@
             updateChart(data);
         }
 
-        // เพิ่มการเจน Unique ID ในส่วนการกดปุ่ม
         logBtn.addEventListener('click', function() {
             let data = getStorage();
             const ts = new Date().toISOString();
@@ -455,7 +467,6 @@
             data.timestamps[todayStr].push(ts);
             saveStorage(data);
             refreshUI();
-            // แนบ id เข้าไปด้วย
             postAction({ action: 'log', id: logId, ts: ts, date: todayStr });
         });
 
@@ -508,9 +519,18 @@
                     });
                     data.history = history;
                     data.timestamps = timestamps;
-                    data.assessments = remote.assessments || {};
+                    
+                    // ป้องกันการโหลด NaN จาก Google Sheet มาทับเครื่อง
+                    if (remote.assessments) {
+                        for (let key in remote.assessments) {
+                            if (key !== 'NaN' && key !== 'undefined' && key !== 'null') {
+                                data.assessments[key] = remote.assessments[key];
+                            }
+                        }
+                    }
+                    
                     if (remote.config) {
-                        if (remote.config.startDate) data.startDate = remote.config.startDate;
+                        if (remote.config.startDate && remote.config.startDate !== 'NaN') data.startDate = remote.config.startDate;
                         if (remote.config.programWeeks) data.programWeeks = parseInt(remote.config.programWeeks);
                         if (remote.config.baseline) data.baseline = parseInt(remote.config.baseline);
                     }
@@ -536,7 +556,6 @@
             const actualData = dates.map(function(date){return data.history[date] || 0;});
             const benchmarkData = dates.map(function(){return currentTarget;});
             
-            // แก้ไขการอ่านค่าวันที่
             const labels = dates.map(function(date){return getSafeDate(date).toLocaleDateString('en-US', { weekday: 'short' });});
 
             const bgColors = actualData.map(function(actual, index){
@@ -648,7 +667,6 @@
                     setupDurationButtons();
                     calculateDynamicTarget();
                     refreshUI();
-                    // แนบ date เข้าไปด้วย
                     postAction({ action: 'config', key: 'programWeeks', value: String(w), date: new Date().toISOString() });
                 };
             });
@@ -720,10 +738,11 @@
 
         function checkMonthlyAuto() {
             let data = getStorage();
-            // แก้ไขการอ่านค่าวันที่
             const start = getSafeDate(data.startDate);
             const now = getSafeDate(todayStr);
-            const diffDays = Math.floor((now - start) / (1000*60*60*24));
+            let diffDays = Math.floor((now - start) / (1000*60*60*24));
+            if (isNaN(diffDays) || diffDays < 0) diffDays = 0;
+            
             if (diffDays > 0 && diffDays % 28 === 0) {
                 const monthKey = Math.floor(diffDays / 28);
                 if (data.lastMonthlyShown !== monthKey) {
