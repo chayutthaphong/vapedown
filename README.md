@@ -18,18 +18,28 @@ A tracker for quitting or reducing closed-system (pod) e-cigarette use through b
 
 ---
 
+## Design Philosophy
+
+The ceiling is a **hard limit, not a target to fill**. The app is deliberately quit-oriented:
+
+- Baseline ceilings are set **far below typical real-world use** (POD users average ~123 puffs/day, EMIT study)
+- In-app messaging never says "you have puffs left to use." Instead it uses a **health-warning + challenge** tone — reminding the user that every avoided puff spares the lungs more nicotine and toxicants, and challenging them to stay below the ceiling
+- The ceiling steps down to **0 (quit)** in the final week
+
+---
+
 ## How the Ceiling Is Calculated
 
 The baseline ceiling is taken from whichever dependence level is higher between FTND and ECDI:
 
 | Dependence level | FTND baseline | ECDI baseline |
 |---|---|---|
-| Low | 32 | 32 |
-| Moderate / Medium | 56 | 56 |
-| High | 80 | 80 |
-| Very High (ECDI only) | — | 104 |
+| Low | 24 | 24 |
+| Moderate / Medium | 42 | 42 |
+| High | 60 | 60 |
+| Very High (ECDI only) | — | 78 |
 
-> This baseline set has been **reduced by 20% from the previous set** (previously 40/70/100 and 40/70/100/130) to make the target stricter, while still staying below real-world use (POD users average ~123 puffs/day, EMIT study).
+> The maximum starting ceiling is **60 puffs/day** (High dependence). This is well below real-world POD use and has been tightened over successive revisions to push more firmly toward cessation.
 
 The ceiling then steps down linearly each week:
 
@@ -38,15 +48,16 @@ ceiling(week) = ceil( baseTarget × [1 − (week−1)/(programWeeks−1)] )
 final week = 0 (quit)
 ```
 
-**Example** (High dependence → baseTarget = 80, 8-week program):
+**Example** (High dependence → baseTarget = 60, 6-week program):
 
 | Week | Ceiling (puffs/day) |
 |---|---|
-| 1 | 80 |
-| 2 | ~69 |
-| 4 | ~46 |
-| 6 | ~23 |
-| 8 | 0 (quit) |
+| 1 | 60 |
+| 2 | ~48 |
+| 3 | ~36 |
+| 4 | ~24 |
+| 5 | ~12 |
+| 6 | 0 (quit) |
 
 ---
 
@@ -57,6 +68,8 @@ final week = 0 (quit)
 3. Open the URL GitHub Pages generates (e.g. `https://<username>.github.io/<repo>/`)
 
 The app is a single-file HTML page that loads Tailwind and Chart.js via CDN — no build step required.
+
+> **After pushing an update:** GitHub Pages may serve a cached copy. Wait for the deploy to finish, then hard-refresh or append a cache-buster to the URL (e.g. `?v=5`).
 
 ---
 
@@ -78,6 +91,10 @@ The app exchanges data with a Google Apps Script (GAS) web app bound to a Google
 The app normalises the sheet's `date`/`timestamp` values to `YYYY-MM-DD` so the keys always match the current local date. Without this step, the puff count shows 0 every time the app opens.
 
 > **Timezone caveat:** `timestamp` is in UTC. If used in the evening (GMT+07:00), the date derived from UTC may roll over to the next day. To anchor strictly to local (Thai) time, use the `date` column from GAS instead.
+
+### Note on baseline values
+
+Baseline ceilings (24 / 42 / 60 / 78) are computed **client-side** from the FTND/ECDI scores; they are not stored in the Sheet. When the app code is updated, existing assessments still apply and the new ceilings take effect on reload — no need to re-take the assessment.
 
 ---
 
