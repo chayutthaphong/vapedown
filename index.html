@@ -154,6 +154,7 @@
             <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 mb-4 space-y-2">
                 <div class="flex justify-between items-center"><span class="text-xs text-gray-600">Total puffs</span><span class="text-sm font-semibold text-gray-900" id="wTotal">0</span></div>
                 <div class="flex justify-between items-center"><span class="text-xs text-gray-600">Daily average</span><span class="text-sm font-semibold text-gray-900" id="wAvg">0</span></div>
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">Avg vs ceiling</span><span class="text-sm font-bold" id="wAvgPct">-</span></div>
                 <div class="flex justify-between items-center"><span class="text-xs text-gray-600">On-target days</span><span class="text-sm font-bold text-green-600" id="wAdherence">-</span></div>
                 <div class="flex justify-between items-center"><span class="text-xs text-gray-600">vs previous week</span><span class="text-sm font-bold" id="wCompare">-</span></div>
             </div>
@@ -174,6 +175,7 @@
             <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 mb-4 space-y-2">
                 <div class="flex justify-between items-center"><span class="text-xs text-gray-600">Total puffs (28d)</span><span class="text-sm font-semibold text-gray-900" id="moTotal">0</span></div>
                 <div class="flex justify-between items-center"><span class="text-xs text-gray-600">Daily average</span><span class="text-sm font-semibold text-gray-900" id="moAvg">0</span></div>
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">Avg vs ceiling</span><span class="text-sm font-bold" id="moAvgPct">-</span></div>
                 <div class="flex justify-between items-center"><span class="text-xs text-gray-600">Zero-puff days</span><span class="text-sm font-bold text-green-600" id="moZero">0</span></div>
                 <div class="flex justify-between items-center"><span class="text-xs text-gray-600">On-target days</span><span class="text-sm font-bold text-green-600" id="moAdherence">-</span></div>
                 <div class="flex justify-between items-center"><span class="text-xs text-gray-600">vs previous 28 days</span><span class="text-sm font-bold" id="moCompare">-</span></div>
@@ -779,6 +781,20 @@
             return '#991b1b';
         }
 
+        // ★ สี text ตาม % ของเพดาน: ยิ่งเข้าใกล้/เกิน = ยิ่งร้อน
+        //   ceiling=0 (สัปดาห์ quit): มี puff = ร้อนสุด, ไม่มี = เขียว
+        function ratioColorClass(actual, target) {
+            if (target === 0) return actual > 0 ? 'text-red-700' : 'text-green-600';
+            if (actual === 0) return 'text-green-600';
+            const r = actual / target;
+            if (r <= 0.40) return 'text-lime-600';
+            if (r <= 0.60) return 'text-yellow-600';
+            if (r <= 0.80) return 'text-amber-600';
+            if (r <= 0.99) return 'text-orange-600';
+            if (r <= 1.20) return 'text-red-600';
+            return 'text-red-700';
+        }
+
         const hourLabels = (function(){ const a=[]; for(let h=0;h<24;h++) a.push((h%6===0)?((h<10?"0":"")+h+":00"):""); return a; })();
 
         function makeHourChart(canvasId, existing, bins) {
@@ -820,9 +836,13 @@
             document.getElementById('dRepTotal').innerText = total;
             document.getElementById('dRepCeiling').innerText = dayCeiling;
             const st = document.getElementById('dRepStatus');
-            if (dayCeiling === 0) { st.innerText = total===0?"\u2713":"\u2715"; st.className = "text-lg font-semibold " + (total===0?"text-green-600":"text-red-600"); }
-            else if (total <= dayCeiling) { st.innerText = Math.round(total/dayCeiling*100)+"%"; st.className = "text-lg font-semibold text-green-600"; }
-            else { st.innerText = Math.round(total/dayCeiling*100)+"%"; st.className = "text-lg font-semibold text-red-600"; }
+            if (dayCeiling === 0) {
+                st.innerText = total===0 ? "\u2713" : Math.round(total)+"";
+                st.className = "text-lg font-semibold " + ratioColorClass(total, dayCeiling);
+            } else {
+                st.innerText = Math.round(total/dayCeiling*100)+"%";
+                st.className = "text-lg font-semibold " + ratioColorClass(total, dayCeiling);
+            }
 
             // time-series ปกติ: แกนนอน = ชั่วโมง 0-23, แกนตั้ง = จำนวน puff ในชั่วโมงนั้น
             const bins = hourHistogram(data, [day]);
@@ -903,6 +923,11 @@
             const prev = sumDays(data, prevWeek);
             document.getElementById('wTotal').innerText = cur.total;
             document.getElementById('wAvg').innerText = cur.avg + " /day";
+            const wCeil = ceilingForDate(anchorDate);
+            const wAvgPct = document.getElementById('wAvgPct');
+            if (cur.logged === 0) { wAvgPct.innerText = "-"; wAvgPct.className = "text-sm font-bold text-gray-400"; }
+            else if (wCeil === 0) { wAvgPct.innerText = cur.avg>0 ? "over quit line" : "0 (quit)"; wAvgPct.className = "text-sm font-bold " + ratioColorClass(cur.avg, wCeil); }
+            else { wAvgPct.innerText = Math.round(cur.avg/wCeil*100) + "% of " + wCeil; wAvgPct.className = "text-sm font-bold " + ratioColorClass(cur.avg, wCeil); }
             const adh = cur.logged ? Math.round(cur.onTarget/cur.logged*100) : 0;
             const adhEl = document.getElementById('wAdherence');
             adhEl.innerText = cur.onTarget + "/" + cur.logged + " (" + adh + "%)";
@@ -956,6 +981,11 @@
 
             document.getElementById('moTotal').innerText = total;
             document.getElementById('moAvg').innerText = avg + " /day";
+            const moCeil = ceilingForDate(anchorDate);
+            const moAvgPct = document.getElementById('moAvgPct');
+            if (logged.length === 0) { moAvgPct.innerText = "-"; moAvgPct.className = "text-sm font-bold text-gray-400"; }
+            else if (moCeil === 0) { moAvgPct.innerText = avg>0 ? "over quit line" : "0 (quit)"; moAvgPct.className = "text-sm font-bold " + ratioColorClass(avg, moCeil); }
+            else { moAvgPct.innerText = Math.round(avg/moCeil*100) + "% of " + moCeil; moAvgPct.className = "text-sm font-bold " + ratioColorClass(avg, moCeil); }
             document.getElementById('moZero').innerText = zeroDays + " days";
             const adh = logged.length ? Math.round(onTarget/logged.length*100) : 0;
             const adhEl = document.getElementById('moAdherence');
