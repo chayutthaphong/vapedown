@@ -293,7 +293,7 @@
             <div class="mt-4 text-[10px] text-gray-400 leading-relaxed space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <p><strong>Disclaimer:</strong> This application provides a structural framework for nicotine tapering and is intended for personal data collection and longitudinal tracking. It does not constitute formal medical advice, diagnosis, or behavioral therapy. Please consult healthcare professionals for personalized guidance.</p>
                 <p><strong>Clinical rationale:</strong> Pre-filled closed-system pod devices cannot be diluted, so dependence reduction relies on behavioural frequency modification, interval extension, and trigger decoupling (CBT principles). Dependence is assessed with the FTND and the Penn State ECDI; the weekly puff ceiling is a deliberately quit-oriented target set below typical real-world consumption and stepped down to zero over the chosen program length.</p>
-                <p><strong>Ceiling vs daily challenge:</strong> Two targets are shown together. The <strong>weekly ceiling</strong> is a fixed hard limit for the current program week and steps down each week to zero. The <strong>daily challenge</strong> is a dynamic, tighter target computed from your own recent behaviour, defined as <em>challenge = min( weekly ceiling, yesterday's actual puffs &times; 0.9 )</em>. In practice: on the first day (no prior day) the challenge equals the ceiling; if yesterday you stayed below the ceiling, today's challenge is 10% lower than what you actually used, so it keeps ratcheting down as you improve; if yesterday you reached or exceeded the ceiling, the challenge resets to the ceiling rather than rewarding the overshoot. When the program moves to a new week and the ceiling drops, the lower ceiling automatically caps the challenge, so the challenge can never exceed the current week's ceiling. The ceiling guarantees a minimum rate of reduction; the challenge encourages going faster when you can. Both are pragmatic design choices, not validated dosing protocols.</p>
+                <p><strong>Ceiling vs daily challenge:</strong> Two targets are shown together. The <strong>weekly ceiling</strong> is a fixed hard limit for the current program week and steps down each week to zero. The <strong>daily challenge</strong> is a dynamic, tighter target defined as <em>challenge = min( weekly ceiling, yesterday's actual puffs ) &times; 0.9</em> &mdash; it is always 10% below your reference point. In practice: on the first day (no prior day) the reference is the ceiling, so the challenge is the ceiling &times; 0.9; if yesterday you stayed below the ceiling, the reference is what you actually used, so the challenge keeps ratcheting down as you improve; if yesterday you reached or exceeded the ceiling, the reference is capped at the ceiling, so the challenge becomes the ceiling &times; 0.9. When the program moves to a new week and the ceiling drops, the same formula uses the new, lower ceiling automatically. The ceiling guarantees a minimum rate of reduction; the challenge always pushes 10% further. Both are pragmatic design choices, not validated dosing protocols.</p>
 
                 <p class="pt-1"><strong>References (Vancouver style)</strong></p>
                 <p class="text-[9px] text-gray-500 italic">All citations verified against PubMed. DOI links included.</p>
@@ -941,9 +941,9 @@
         }
 
         // ★ Dynamic challenge target ของวันที่กำหนด
-        //   ปกติ = จำนวนที่สูบจริงเมื่อวาน x 0.9 (บีบให้ลดลงต่อเนื่องจากพฤติกรรมจริง)
-        //   ถ้าเมื่อวานสูบ >= ceiling (คุมไม่อยู่) => challenge = ceiling ของสัปดาห์ (ไม่ลดให้)
-        //   วันแรกสุด (ไม่มีข้อมูลเมื่อวาน) => ใช้ ceiling
+        //   = min( ceiling ของสัปดาห์ , จำนวนที่สูบจริงเมื่อวาน ) x 0.9
+        //   คูณ 0.9 เสมอ (บีบให้ต่ำกว่าค่าอ้างอิง 10% ทุกวัน)
+        //   วันแรกสุด (ไม่มีข้อมูลเมื่อวาน) => ceiling x 0.9
         //   ceiling = 0 (สัปดาห์ quit) => challenge = 0 เสมอ
         function challengeForDate(dateStr) {
             const ceiling = ceilingForDate(dateStr);
@@ -953,10 +953,10 @@
             const prev = new Date(d); prev.setDate(prev.getDate() - 1);
             const prevKey = prev.toLocaleDateString('en-CA');
             const prevActual = data.history[prevKey];
-            if (prevActual === undefined) return ceiling;      // ไม่มีข้อมูลเมื่อวาน
-            if (prevActual >= ceiling) return ceiling;         // เมื่อวานคุมไม่อยู่ => กลับไปที่ ceiling
-            const target = Math.ceil(prevActual * 0.9);        // ทำได้ต่ำกว่า ceiling => บีบต่อ 10%
-            return target < 0 ? 0 : Math.min(ceiling, target);
+            // ค่าอ้างอิง = เมื่อวานจริง (แต่ไม่เกิน ceiling); วันแรกไม่มีเมื่อวาน => ใช้ ceiling
+            const ref = (prevActual === undefined) ? ceiling : Math.min(ceiling, prevActual);
+            const target = Math.ceil(ref * 0.9);
+            return target < 0 ? 0 : target;
         }
 
         function renderDaily() {
