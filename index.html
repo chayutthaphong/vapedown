@@ -45,6 +45,21 @@
             <p id="liveClock" class="text-xs text-gray-400 mt-3 font-medium tracking-wide"></p>
         </div>
 
+        <!-- Daily check-in reminder banner -->
+        <div id="reminderBanner" class="hidden bg-indigo-50 border border-indigo-200 rounded-2xl p-4">
+            <div class="flex items-start gap-3">
+                <span class="text-xl">&#128221;</span>
+                <div class="flex-1">
+                    <p class="text-sm font-semibold text-indigo-900">Evening check-in</p>
+                    <p class="text-[11px] text-indigo-700 mt-0.5" id="reminderText">You haven't logged today's mood or notes yet. Take a moment to reflect before the day ends.</p>
+                    <div class="flex gap-2 mt-2">
+                        <button id="reminderGoBtn" class="text-[11px] font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg px-3 py-1.5 transition">Log now</button>
+                        <button id="reminderDismissBtn" class="text-[11px] font-medium text-indigo-600 hover:text-indigo-800 px-2">Later</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="grid grid-cols-2 gap-3">
             <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
                 <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Dependence (FTND)</p>
@@ -276,6 +291,20 @@
                 <p class="text-[10px] text-blue-800 font-semibold mb-1">Evidence-based guidance</p>
                 <p class="text-[9px] text-blue-700 leading-relaxed">Research favours <strong>shorter tapers (2&ndash;4 weeks)</strong>. Behavioural trials set quit dates 0&ndash;5 weeks out (Lindson review); one common schedule cuts baseline cigarettes/day by 25% over 4 weeks (Skelton). Longer programmes see more drop-out (RedPharm compared 4 vs 16 weeks; participants stayed ~6 weeks on average). What predicts success most is <strong>sticking to the schedule</strong>, not length. &rarr; If you can tolerate it, <strong>4 weeks is the recommended choice</strong>; pick 6&ndash;8 only if withdrawal feels too harsh.</p>
             </div>
+        </div>
+
+        <!-- Daily Reminder Settings -->
+        <div class="border-t border-gray-100 pt-5 mt-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Daily check-in reminder</p>
+                    <p class="text-[10px] text-gray-500 mt-0.5">Prompt to log mood/notes at 21:30</p>
+                </div>
+                <button id="reminderToggle" role="switch" aria-checked="false" class="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 transition">
+                    <span id="reminderKnob" class="inline-block h-5 w-5 transform rounded-full bg-white shadow translate-x-0.5 transition"></span>
+                </button>
+            </div>
+            <p class="text-[9px] text-gray-400 mt-2 leading-relaxed" id="reminderStatusText">Off. When on, you'll get a browser notification at 21:30 if the app is open, and a banner when you open the app after 21:30 without having logged.</p>
         </div>
 
         <!-- Weekly Taper Plan -->
@@ -621,6 +650,8 @@
             const noteDone = !!(data.notesHistory && data.notesHistory[todayStr] && data.notesHistory[todayStr].trim() !== '');
             document.getElementById('moodSaved').classList.toggle('hidden', !moodDone);
             document.getElementById('noteSaved').classList.toggle('hidden', !noteDone);
+            // ถ้ากรอกแล้วให้ซ่อน banner เตือน
+            if (typeof maybeShowReminderBanner === 'function') maybeShowReminderBanner();
         }
 
         noteInput.addEventListener('change', function() {
@@ -1363,8 +1394,125 @@
             }
         }
 
+        // ===== DAILY CHECK-IN REMINDER =====
+        const REMINDER_HOUR = 21, REMINDER_MIN = 30;
+
+        function reminderEnabled() {
+            const data = getStorage();
+            return !!data.reminderOn;
+        }
+
+        // วันนี้กรอก mood หรือ note แล้วหรือยัง
+        function loggedMoodOrNoteToday() {
+            const data = getStorage();
+            const m = data.moodHistory && data.moodHistory[todayStr];
+            const n = data.notesHistory && data.notesHistory[todayStr] && data.notesHistory[todayStr].trim() !== '';
+            return !!(m || n);
+        }
+
+        function setReminderToggleUI(on) {
+            const t = document.getElementById('reminderToggle');
+            const knob = document.getElementById('reminderKnob');
+            const txt = document.getElementById('reminderStatusText');
+            t.setAttribute('aria-checked', on ? 'true' : 'false');
+            t.className = "relative inline-flex h-6 w-11 items-center rounded-full transition " + (on ? "bg-indigo-600" : "bg-gray-200");
+            knob.className = "inline-block h-5 w-5 transform rounded-full bg-white shadow transition " + (on ? "translate-x-[22px]" : "translate-x-0.5");
+            if (on) {
+                const perm = (typeof Notification !== 'undefined') ? Notification.permission : 'unsupported';
+                if (perm === 'granted') txt.innerText = "On. You'll get a browser notification at 21:30 if the app is open, plus a banner when you open the app after 21:30 without having logged.";
+                else if (perm === 'denied') txt.innerText = "On (in-app only). Browser notifications are blocked in your settings, so you'll still see the banner when you open the app after 21:30.";
+                else txt.innerText = "On. Allow notifications to also get a browser alert at 21:30 while the app is open; otherwise you'll see the in-app banner.";
+            } else {
+                txt.innerText = "Off. When on, you'll get a browser notification at 21:30 if the app is open, and a banner when you open the app after 21:30 without having logged.";
+            }
+        }
+
+        function showReminderBanner() {
+            const b = document.getElementById('reminderBanner');
+            b.classList.remove('hidden');
+        }
+        function hideReminderBanner() {
+            document.getElementById('reminderBanner').classList.add('hidden');
+        }
+
+        // เช็คว่าควรเด้ง banner ไหม (เปิดแอปหลัง 21:30 + ยังไม่กรอก + ยังไม่ dismiss วันนี้)
+        function maybeShowReminderBanner() {
+            if (!reminderEnabled()) { hideReminderBanner(); return; }
+            const data = getStorage();
+            const now = new Date();
+            const past = now.getHours() > REMINDER_HOUR || (now.getHours() === REMINDER_HOUR && now.getMinutes() >= REMINDER_MIN);
+            if (past && !loggedMoodOrNoteToday() && data.reminderDismissed !== todayStr) {
+                showReminderBanner();
+            } else {
+                hideReminderBanner();
+            }
+        }
+
+        // ยิง browser notification (ครั้งเดียวต่อวัน) ถ้าถึงเวลาและแอปเปิดอยู่
+        function fireBrowserNotification() {
+            const data = getStorage();
+            if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+            if (data.reminderNotified === todayStr) return;
+            data.reminderNotified = todayStr;
+            saveStorage(data);
+            try {
+                new Notification("Step Down \u2014 evening check-in", {
+                    body: "Take a moment to log today's mood and any triggers before the day ends.",
+                    tag: "stepdown-checkin-" + todayStr
+                });
+            } catch (e) {}
+        }
+
+        // ตัวจับเวลา: ทุกนาที เช็คว่าถึง 21:30 หรือยัง (ทำงานเฉพาะตอนแอปเปิด)
+        let reminderTimer = null;
+        function startReminderScheduler() {
+            if (reminderTimer) clearInterval(reminderTimer);
+            reminderTimer = setInterval(function(){
+                if (!reminderEnabled()) return;
+                const now = new Date();
+                const atTime = now.getHours() === REMINDER_HOUR && now.getMinutes() >= REMINDER_MIN && now.getMinutes() < REMINDER_MIN + 5;
+                if (atTime && !loggedMoodOrNoteToday()) {
+                    fireBrowserNotification();
+                    maybeShowReminderBanner();
+                }
+            }, 60 * 1000);
+        }
+
+        function setupReminder() {
+            const data = getStorage();
+            setReminderToggleUI(!!data.reminderOn);
+
+            document.getElementById('reminderToggle').addEventListener('click', function() {
+                let d = getStorage();
+                const turningOn = !d.reminderOn;
+                d.reminderOn = turningOn;
+                saveStorage(d);
+                if (turningOn && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+                    Notification.requestPermission().then(function(){ setReminderToggleUI(true); });
+                }
+                setReminderToggleUI(turningOn);
+                maybeShowReminderBanner();
+            });
+
+            document.getElementById('reminderGoBtn').addEventListener('click', function() {
+                hideReminderBanner();
+                const el = document.getElementById('moodContainer');
+                if (el && el.scrollIntoView) el.scrollIntoView({ behavior:'smooth', block:'center' });
+            });
+            document.getElementById('reminderDismissBtn').addEventListener('click', function() {
+                let d = getStorage();
+                d.reminderDismissed = todayStr;
+                saveStorage(d);
+                hideReminderBanner();
+            });
+
+            startReminderScheduler();
+            maybeShowReminderBanner();
+        }
+
         setupReportTabs();
         setupDatePicker();
+        setupReminder();
         initApp();
         checkMonthlyAuto();
     </script>
