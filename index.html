@@ -69,6 +69,16 @@
                 <span class="text-xl text-gray-300 font-light">/</span>
                 <span id="dailyTargetDisplay" class="text-xl text-gray-400 font-light">-</span>
             </div>
+            <div class="flex justify-center gap-3 mt-3">
+                <div class="bg-white border border-gray-200 rounded-xl px-3 py-1.5">
+                    <p class="text-[9px] uppercase tracking-wider text-gray-400 font-medium">Week ceiling</p>
+                    <p class="text-sm font-semibold text-gray-700" id="ceilingChip">-</p>
+                </div>
+                <div class="bg-white border border-indigo-200 rounded-xl px-3 py-1.5">
+                    <p class="text-[9px] uppercase tracking-wider text-indigo-400 font-medium">Today's challenge</p>
+                    <p class="text-sm font-bold" id="challengeChip">-</p>
+                </div>
+            </div>
             <p id="motivationMsg" class="text-xs text-gray-500 mt-3 px-4 font-medium min-h-[1rem]">
                 Ready to track.
             </p>
@@ -116,6 +126,16 @@
                 <div class="bg-gray-50 rounded-xl p-2 text-center border border-gray-100">
                     <p class="text-[9px] uppercase tracking-wider text-gray-400">vs Limit</p>
                     <p class="text-lg font-semibold" id="dRepStatus">-</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <div class="bg-indigo-50 rounded-xl p-2 text-center border border-indigo-100">
+                    <p class="text-[9px] uppercase tracking-wider text-indigo-400">Challenge</p>
+                    <p class="text-lg font-semibold text-indigo-700" id="dRepChallenge">-</p>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-2 text-center border border-gray-100">
+                    <p class="text-[9px] uppercase tracking-wider text-gray-400">vs Challenge</p>
+                    <p class="text-lg font-semibold" id="dRepChalStatus">-</p>
                 </div>
             </div>
             <p class="text-[10px] uppercase tracking-wider text-gray-400 mb-2 font-medium">Puffs per hour</p>
@@ -244,6 +264,7 @@
             <div class="mt-4 text-[10px] text-gray-400 leading-relaxed space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <p><strong>Disclaimer:</strong> This application provides a structural framework for nicotine tapering and is intended for personal data collection and longitudinal tracking. It does not constitute formal medical advice, diagnosis, or behavioral therapy. Please consult healthcare professionals for personalized guidance.</p>
                 <p><strong>Clinical rationale:</strong> Pre-filled closed-system pod devices cannot be diluted, so dependence reduction relies on behavioural frequency modification, interval extension, and trigger decoupling (CBT principles). Dependence is assessed with the FTND and the Penn State ECDI; the weekly puff ceiling is a deliberately quit-oriented target set below typical real-world consumption and stepped down to zero over the chosen program length.</p>
+                <p><strong>Ceiling vs daily challenge:</strong> Two targets are shown together. The <strong>weekly ceiling</strong> is a fixed hard limit for the current program week and steps down each week to zero. The <strong>daily challenge</strong> is a dynamic, tighter target computed from your own recent behaviour, defined as <em>challenge = min( weekly ceiling, yesterday's actual puffs &times; 0.9 )</em>. In practice: on the first day (no prior day) the challenge equals the ceiling; if yesterday you stayed below the ceiling, today's challenge is 10% lower than what you actually used, so it keeps ratcheting down as you improve; if yesterday you reached or exceeded the ceiling, the challenge resets to the ceiling rather than rewarding the overshoot. When the program moves to a new week and the ceiling drops, the lower ceiling automatically caps the challenge, so the challenge can never exceed the current week's ceiling. The ceiling guarantees a minimum rate of reduction; the challenge encourages going faster when you can. Both are pragmatic design choices, not validated dosing protocols.</p>
 
                 <p class="pt-1"><strong>References (Vancouver style)</strong></p>
                 <p class="text-[9px] text-gray-500 italic">All citations verified against PubMed. DOI links included.</p>
@@ -572,9 +593,19 @@
         function refreshUI() {
             let data = getStorage();
             const todayCount = data.history[todayStr] || 0;
+            const challenge = challengeForDate(todayStr);
             document.getElementById('currentPuffs').innerText = todayCount;
             document.getElementById('dailyTargetDisplay').innerText = currentTarget;
+
+            // chip: ceiling (คงที่ของ week) + challenge (dynamic วันนี้ พร้อมสีร้อนตามที่สูบ)
+            document.getElementById('ceilingChip').innerText = currentTarget === 0 ? "0 (quit)" : currentTarget;
+            const chal = document.getElementById('challengeChip');
+            chal.innerText = challenge === 0 ? "0 (quit)" : challenge;
+            chal.className = "text-sm font-bold " + ratioColorClass(todayCount, challenge);
+
             const msgBox = document.getElementById('motivationMsg');
+            const underChallenge = challenge > 0 && todayCount <= challenge;
+            const overChallengeUnderCeiling = challenge > 0 && todayCount > challenge && todayCount < currentTarget;
 
             if (currentTarget === 0) {
                 logBtn.innerText = "Log Relapse Puff";
@@ -585,20 +616,23 @@
                 logBtn.innerText = "Log 1 Puff";
                 logBtn.className = "w-full bg-gray-900 text-white py-4 rounded-2xl text-md font-medium shadow-sm hover:bg-gray-800 active:scale-[0.98] transition";
                 if (todayCount === 0) {
-                    msgBox.innerText = "Nothing yet today \u2014 the best number to stay at. The ceiling is a limit, not a goal to reach.";
+                    msgBox.innerText = "Nothing yet today \u2014 the best number to stay at. Beat today's challenge of " + challenge + " and tomorrow's drops again.";
                     msgBox.className = "text-xs text-blue-600 mt-3 px-4 font-medium";
-                } else if (todayCount < currentTarget * 0.6) {
-                    msgBox.innerText = "The ceiling is the most you're allowed \u2014 not a target to fill. Every puff you skip spares your lungs more nicotine and toxicants.";
+                } else if (underChallenge) {
+                    msgBox.innerText = "Under today's challenge (" + challenge + ") \u2014 excellent. Stay here and tomorrow's target drops 10% lower. Every skipped puff spares your lungs.";
                     msgBox.className = "text-xs text-green-600 mt-3 px-4 font-medium";
-                } else if (todayCount < currentTarget) {
-                    msgBox.innerText = "Nearing today's limit. Each extra puff keeps the nicotine dependence alive \u2014 can you stop below the ceiling?";
+                } else if (overChallengeUnderCeiling) {
+                    msgBox.innerText = "Past today's challenge (" + challenge + ") but still under the week's ceiling. Try to stop now \u2014 each extra puff keeps the addiction alive.";
                     msgBox.className = "text-xs text-amber-600 mt-3 px-4 font-medium";
                 } else if (todayCount === currentTarget) {
-                    msgBox.innerText = "At the ceiling \u2014 this is the hard stop. Going past it raises your exposure and stalls quitting. Put it down now.";
+                    msgBox.innerText = "At the week's ceiling \u2014 this is the hard stop. Going past it raises your exposure and stalls quitting. Put it down now.";
                     msgBox.className = "text-xs text-gray-800 mt-3 px-4 font-bold";
-                } else {
+                } else if (todayCount > currentTarget) {
                     msgBox.innerText = "Over your health limit for today. No shame \u2014 but this dose feeds the addiction. Note the trigger and stop here.";
                     msgBox.className = "text-xs text-red-500 mt-3 px-4 font-medium";
+                } else {
+                    msgBox.innerText = "Nearing today's limit. Each extra puff keeps the nicotine dependence alive \u2014 can you stop below the ceiling?";
+                    msgBox.className = "text-xs text-amber-600 mt-3 px-4 font-medium";
                 }
             }
             renderActiveReport();
@@ -827,6 +861,25 @@
             return ceilingForWeek(weekNumForDate(dateStr), currentBaseTarget());
         }
 
+        // ★ Dynamic challenge target ของวันที่กำหนด
+        //   ปกติ = จำนวนที่สูบจริงเมื่อวาน x 0.9 (บีบให้ลดลงต่อเนื่องจากพฤติกรรมจริง)
+        //   ถ้าเมื่อวานสูบ >= ceiling (คุมไม่อยู่) => challenge = ceiling ของสัปดาห์ (ไม่ลดให้)
+        //   วันแรกสุด (ไม่มีข้อมูลเมื่อวาน) => ใช้ ceiling
+        //   ceiling = 0 (สัปดาห์ quit) => challenge = 0 เสมอ
+        function challengeForDate(dateStr) {
+            const ceiling = ceilingForDate(dateStr);
+            if (ceiling === 0) return 0;
+            const data = getStorage();
+            const d = getSafeDate(dateStr);
+            const prev = new Date(d); prev.setDate(prev.getDate() - 1);
+            const prevKey = prev.toLocaleDateString('en-CA');
+            const prevActual = data.history[prevKey];
+            if (prevActual === undefined) return ceiling;      // ไม่มีข้อมูลเมื่อวาน
+            if (prevActual >= ceiling) return ceiling;         // เมื่อวานคุมไม่อยู่ => กลับไปที่ ceiling
+            const target = Math.ceil(prevActual * 0.9);        // ทำได้ต่ำกว่า ceiling => บีบต่อ 10%
+            return target < 0 ? 0 : Math.min(ceiling, target);
+        }
+
         function renderDaily() {
             const data = getStorage();
             const day = anchorDate;
@@ -842,6 +895,18 @@
             } else {
                 st.innerText = Math.round(total/dayCeiling*100)+"%";
                 st.className = "text-lg font-semibold " + ratioColorClass(total, dayCeiling);
+            }
+
+            // dynamic challenge target ของวันนั้น
+            const dayChallenge = challengeForDate(day);
+            document.getElementById('dRepChallenge').innerText = dayChallenge === 0 ? "0" : dayChallenge;
+            const cst = document.getElementById('dRepChalStatus');
+            if (dayChallenge === 0) {
+                cst.innerText = total===0 ? "\u2713" : Math.round(total)+"";
+                cst.className = "text-lg font-semibold " + ratioColorClass(total, dayChallenge);
+            } else {
+                cst.innerText = Math.round(total/dayChallenge*100)+"%";
+                cst.className = "text-lg font-semibold " + ratioColorClass(total, dayChallenge);
             }
 
             // time-series ปกติ: แกนนอน = ชั่วโมง 0-23, แกนตั้ง = จำนวน puff ในชั่วโมงนั้น
@@ -943,9 +1008,10 @@
                 else { cmp.innerText = "same as last week"; cmp.className="text-sm font-bold text-gray-500"; }
             }
 
-            // daily bar chart vs ceiling (per-day ceiling)
+            // daily bar chart vs ceiling + challenge (per-day)
             const dayVals = thisWeek.map(function(ds){ return data.history[ds] || 0; });
             const dayCeils = thisWeek.map(function(ds){ return ceilingForDate(ds); });
+            const dayChals = thisWeek.map(function(ds){ return challengeForDate(ds); });
             const dayLabels = thisWeek.map(function(ds){ return getSafeDate(ds).toLocaleDateString('en-US',{weekday:'short'}); });
             const colors = dayVals.map(function(v, i){ return barColor(v, dayCeils[i]); });
             const ctx = document.getElementById('weeklyDayChart').getContext('2d');
@@ -953,10 +1019,11 @@
             weeklyDayChart = new Chart(ctx, {
                 type: 'bar',
                 data: { labels: dayLabels, datasets: [
-                    { label:'Puffs', data: dayVals, backgroundColor: colors, borderRadius: 4, barPercentage: 0.6, order: 2 },
-                    { label:'Ceiling', type:'line', data: dayCeils, borderColor:'#9ca3af', borderWidth:1.5, borderDash:[3,3], pointRadius:0, fill:false, order:1, stepped:true }
+                    { label:'Puffs', data: dayVals, backgroundColor: colors, borderRadius: 4, barPercentage: 0.6, order: 3 },
+                    { label:'Ceiling', type:'line', data: dayCeils, borderColor:'#9ca3af', borderWidth:1.5, borderDash:[3,3], pointRadius:0, fill:false, order:1, stepped:true },
+                    { label:'Challenge', type:'line', data: dayChals, borderColor:'#6366f1', borderWidth:1.5, pointRadius:2, pointBackgroundColor:'#6366f1', fill:false, order:2, stepped:true }
                 ] },
-                options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}, ticks:{font:{size:9},color:'#9ca3af'}}, y:{grid:{color:'#f9fafb'}, ticks:{beginAtZero:true,precision:0,font:{size:9},color:'#9ca3af'}} } }
+                options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:true, labels:{font:{size:9},boxWidth:10,filter:function(item){return item.text!=='Puffs';}}}}, scales:{ x:{grid:{display:false}, ticks:{font:{size:9},color:'#9ca3af'}}, y:{grid:{color:'#f9fafb'}, ticks:{beginAtZero:true,precision:0,font:{size:9},color:'#9ca3af'}} } }
             });
 
             const bins = hourHistogram(data, thisWeek);
