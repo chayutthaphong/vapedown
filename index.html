@@ -215,6 +215,7 @@
         <div class="border-t border-gray-100 pt-5 mt-4">
             <div class="flex justify-between items-end mb-3">
                 <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Daily Mood (Optional)</p>
+                <span id="moodSaved" class="text-[9px] font-semibold text-green-600 hidden">&#10003; Saved today</span>
             </div>
             <div class="flex justify-between px-1" id="moodContainer">
                 <button class="mood-btn text-3xl" onclick="setMood('Awful')" data-mood="Awful">&#128557;</button>
@@ -226,7 +227,10 @@
         </div>
 
         <div class="pt-2 pb-2">
-            <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-2">Clinical Notes / Triggers</p>
+            <div class="flex justify-between items-end mb-2">
+                <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Clinical Notes / Triggers</p>
+                <span id="noteSaved" class="text-[9px] font-semibold text-green-600 hidden">&#10003; Saved today</span>
+            </div>
             <textarea id="dailyNote" rows="2" class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700 focus:outline-none focus:border-gray-600 transition" placeholder="Record specific triggers, cravings, or withdrawal symptoms..."></textarea>
         </div>
 
@@ -471,6 +475,7 @@
 
             if (data.moodHistory && data.moodHistory[todayStr]) setMood(data.moodHistory[todayStr], false);
             if (data.notesHistory && data.notesHistory[todayStr]) noteInput.value = data.notesHistory[todayStr];
+            updateSavedBadges();
 
             if (data.assessments[assessKey] === undefined) {
                 openAssessment();
@@ -580,15 +585,28 @@
             document.querySelectorAll('.mood-btn').forEach(function(btn){
                 btn.classList.toggle('active', btn.dataset.mood === mood);
             });
+            updateSavedBadges();
             if (doSync) postAction({ action: 'meta', date: todayStr, mood: mood, note: (data.notesHistory[todayStr] || '') });
+        }
+
+        // แสดง/ซ่อนป้าย "Saved today" ตามว่าวันนี้บันทึก mood/note แล้วหรือยัง
+        function updateSavedBadges() {
+            const data = getStorage();
+            const moodDone = !!(data.moodHistory && data.moodHistory[todayStr]);
+            const noteDone = !!(data.notesHistory && data.notesHistory[todayStr] && data.notesHistory[todayStr].trim() !== '');
+            document.getElementById('moodSaved').classList.toggle('hidden', !moodDone);
+            document.getElementById('noteSaved').classList.toggle('hidden', !noteDone);
         }
 
         noteInput.addEventListener('change', function() {
             let data = getStorage();
             data.notesHistory[todayStr] = noteInput.value;
             saveStorage(data);
+            updateSavedBadges();
             postAction({ action: 'meta', date: todayStr, mood: (data.moodHistory[todayStr] || ''), note: noteInput.value });
         });
+        // อัปเดต badge แบบ real-time ระหว่างพิมพ์ด้วย
+        noteInput.addEventListener('input', updateSavedBadges);
 
         function refreshUI() {
             let data = getStorage();
@@ -745,8 +763,18 @@
                         if (remote.config.programWeeks) data.programWeeks = parseInt(remote.config.programWeeks);
                         if (remote.config.baseline) data.baseline = parseInt(remote.config.baseline);
                     }
-                    if (remote.mood) data.moodHistory = remote.mood;
-                    if (remote.notes) data.notesHistory = remote.notes;
+                    // ★ merge mood/notes แทนการทับทั้งก้อน และให้ค่าของ "วันนี้" ในเครื่องชนะเสมอ
+                    //   (กันกรณีเพิ่งกด mood/note วันนี้ แล้ว sync ยังไม่ขึ้น Sheet -> ค่าจะไม่หาย)
+                    if (remote.mood) {
+                        const localTodayMood = data.moodHistory ? data.moodHistory[todayStr] : undefined;
+                        data.moodHistory = Object.assign({}, remote.mood, data.moodHistory || {});
+                        if (localTodayMood !== undefined) data.moodHistory[todayStr] = localTodayMood;
+                    }
+                    if (remote.notes) {
+                        const localTodayNote = data.notesHistory ? data.notesHistory[todayStr] : undefined;
+                        data.notesHistory = Object.assign({}, remote.notes, data.notesHistory || {});
+                        if (localTodayNote !== undefined && localTodayNote !== '') data.notesHistory[todayStr] = localTodayNote;
+                    }
                     saveStorage(data);
                     _syncUI('ok', 'Loaded from Google Sheets');
                     return true;
