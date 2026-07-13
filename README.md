@@ -37,6 +37,7 @@ At a glance, Step Down lets a user:
 - Take a weekly nicotine-dependence assessment (FTND + Penn State ECDI)
 - See two targets side by side every day: a fixed **weekly ceiling** and a tighter **dynamic daily challenge**
 - Get a live **pacing timer** that widens the gap between puffs and flags **binges**
+- See a **journey card** with total puffs, day count, and an **average per day** (total puffs ÷ all days since tracking started — days with no puffs count as zero, so the average drops as you have clean days)
 - Defuse an urge in the moment with a guided **6-step CBT loop** and an **urge-surf timer**
 - Browse a **coping-plan library** of evidence-based craving strategies
 - Track consumption over time in **Daily / Weekly / Monthly** report tabs
@@ -140,6 +141,7 @@ Puffs less than **2 minutes** apart are treated as one continuous *session*, so 
 - **Session size** = how many recent puffs are chained together with < 2 min gaps.
 - **Binge threshold** = `min( 3, round(average session size) + 1 )`. It's a *hybrid*: it can **learn downward** (if your typical session is a single puff, the threshold tightens to 2) but is **hard-capped at 3**, so a run of habitual large sessions can never quietly normalise a high bar.
 - A session **over the threshold** is flagged as a binge — the card turns red and explains that many puffs in a row deliver a nicotine spike comparable to several separate uses.
+- **Peak hours** (which stretch the interval further) are derived from the **last 7 real days ending today** — or fewer if less data exists — using the mean hourly rate across active hours, *not* just the current day. This is anchored to today regardless of which historical date you're viewing in the reports.
 
 ### Interval expansion
 
@@ -170,13 +172,12 @@ The **🧠 Work through a craving** button opens a guided **6-step** worksheet b
 5. **Pick a coping action** — suggestions are **tailored to the trigger you chose**, with a link into the full coping library. *Required to continue.*
 6. **Re-rate the urge** — score it again; the app shows the change and responds accordingly (encouragement if it dropped, a nudge to try another action or step away from the cue if it held or rose).
 
-**What gets saved:** each completed loop is stored as a structured record in a local `cbtHistory[date]` array, **and** a compact one-line summary is appended to that day's notes, e.g.:
+**What gets saved:** each completed loop is stored as a structured record in a local `cbtHistory[date]` array, and is written to Google Sheets in **two** ways:
 
-```
-[CBT 14:12] trigger: Stress / anxiety; urge 8→4; action: Paced breathing (4–6)
-```
+1. A compact one-line summary appended to that day's notes (human-readable backup, e.g. `[CBT 08:12] trigger: Habit cue (coffee, meal, drive…); urge 7→7; action: Stretch the interval`).
+2. A **structured `cbt` post** (`action: 'cbt'`) that writes each field to its **own column** in a dedicated `cbt` sheet — `date`, `timestamp`, `time`, `trigger_id`, `trigger_label`, `thought`, `urge_before`, `urge_after`, `urge_delta`, `reframe`, `action_taken` — so the data is ready for pivots and analysis without parsing text.
 
-Because that line lives in the existing notes field, it **syncs to Google Sheets with no Apps Script or schema change**. The richer `cbtHistory` structure stays on-device and is never overwritten by the sync merge.
+The structured columns require a small Apps Script handler (see `apps_script_cbt_addon.md`); until it's added, the `cbt` posts are harmlessly ignored and you still get the one-line notes backup. The richer `cbtHistory` structure also stays on-device and is never overwritten by the sync merge.
 
 ---
 

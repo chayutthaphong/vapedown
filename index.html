@@ -738,7 +738,10 @@
 
             document.getElementById('totalPuffs').innerText = total.toLocaleString();
             document.getElementById('journeyDayBadge').innerText = "\u00b7 Day " + dayNum;
-            document.getElementById('journeyAvg').innerText = dayNum > 0 ? Math.round(total / dayNum) : "\u2014";
+            // เฉลี่ย/วัน = ยอดสะสมทั้งหมด / จำนวนวันทั้งหมดตั้งแต่เริ่มติดตามถึงวันนี้
+            //   วันที่ไม่ได้สูบ (ไม่มี entry) ถือเป็น 0 puff และนับเป็นตัวหารด้วย
+            const avgEl = document.getElementById('journeyAvg');
+            avgEl.innerText = dayNum > 0 ? Math.round(total / dayNum) : "\u2014";
 
             const startLabel = data.startDate && /^\d{4}-\d{2}-\d{2}$/.test(data.startDate)
                 ? getSafeDate(data.startDate).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
@@ -877,10 +880,23 @@
             return Math.min(BINGE_CAP, Math.round(avgSessionSize()) + 1);
         }
 
-        // ชั่วโมงไหนเป็น peak (>150% ของค่าเฉลี่ยรายชม.ของวันนี้)
+        // n วันสิ้นสุดที่ "วันนี้" เสมอ (ไม่ผูกกับ anchorDate ของรายงาน)
+        //   ใช้กับ interval/peak engine เพื่อไม่ให้ค่าเพี้ยนตอนเปิดดูรายงานย้อนหลัง
+        function recentDatesEndingToday(n) {
+            const arr = [];
+            const base = getSafeDate(todayStr);
+            for (let i = n - 1; i >= 0; i--) {
+                const d = new Date(base); d.setDate(d.getDate() - i);
+                arr.push(d.toLocaleDateString('en-CA'));
+            }
+            return arr;
+        }
+
+        // ชั่วโมงไหนเป็น peak: เทียบกับค่าเฉลี่ยรายชม.จาก "7 วันจริงล่าสุด (สิ้นสุดวันนี้)"
+        //   ถ้ามีข้อมูลจริงน้อยกว่า 7 วัน ก็ใช้เท่าที่มี (ยังคง endingToday)
         function isPeakHour(hour) {
             const data = getStorage();
-            const bins = hourHistogram(data, lastNDates(7, 0));
+            const bins = hourHistogram(data, recentDatesEndingToday(7));
             const active = bins.filter(function(v){ return v > 0; });
             if (!active.length) return false;
             const mean = active.reduce(function(s,v){return s+v;},0) / active.length;
@@ -2020,9 +2036,10 @@
             const data = getStorage();
             data.cbtHistory = data.cbtHistory || {};
             (data.cbtHistory[todayStr] = data.cbtHistory[todayStr] || []).push(cbtRecord);
-            // append a compact human-readable line to the day's notes (syncs to Sheets, no schema change)
             const trigLabel = (CBT_TRIGGERS.find(function(t){return t.id===cbtRecord.trigger;})||{}).label || cbtRecord.trigger || '?';
-            const line = '[CBT ' + new Date(cbtRecord.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) + '] '
+            const timeLabel = new Date(cbtRecord.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+            // (A) human-readable one-liner appended to notes = backup ที่อ่านได้แม้ยังไม่มี sheet 'cbt'
+            const line = '[CBT ' + timeLabel + '] '
                 + 'trigger: ' + trigLabel
                 + '; urge ' + cbtRecord.intensity + '\u2192' + cbtRecord.afterIntensity
                 + (cbtRecord.action ? '; action: ' + cbtRecord.action : '');
@@ -2033,6 +2050,22 @@
             if (noteInput) noteInput.value = data.notesHistory[todayStr];
             if (typeof updateSavedBadges === 'function') updateSavedBadges();
             postAction({ action: 'meta', date: todayStr, mood: (data.moodHistory && data.moodHistory[todayStr] || ''), note: data.notesHistory[todayStr] });
+            // (B) structured payload -> เขียนลง sheet 'cbt' แยกเป็นคอลัมน์ (ง่ายต่อการวิเคราะห์)
+            //     GAS ที่ยังไม่รองรับ action นี้จะ ignore ทิ้งไปเอง ไม่กระทบข้อมูลเดิม
+            postAction({
+                action: 'cbt',
+                date: todayStr,
+                timestamp: cbtRecord.ts,
+                time: timeLabel,
+                trigger_id: cbtRecord.trigger || '',
+                trigger_label: trigLabel,
+                thought: cbtRecord.thought || '',
+                urge_before: cbtRecord.intensity,
+                urge_after: cbtRecord.afterIntensity,
+                urge_delta: cbtRecord.intensity - cbtRecord.afterIntensity,
+                reframe: cbtRecord.reframe || '',
+                action_taken: cbtRecord.action || ''
+            });
         }
 
         function openCbt() {
