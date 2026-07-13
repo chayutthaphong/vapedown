@@ -145,15 +145,23 @@ Puffs less than **2 minutes** apart are treated as one continuous *session*, so 
 
 ### Interval expansion
 
-When you're bingeing or in a heavy-use hour, the required gap stretches:
+When a session exceeds the binge threshold, the required gap **accumulates** on top of whatever time was still owed from a prior binge — it doesn't reset just because a new, smaller session starts in between:
 
 ```
-multiplier = 1 + 0.5 × max(0, sessionSize − threshold)
-if current hour is a personal peak hour: multiplier ×= 1.3
-next allowed time = last puff + baseInterval × multiplier
+for each session, in time order:
+  remaining = time still left on the standing deadline, if any (else 0)
+  if this session is a binge (size > threshold):
+      new deadline = this session's last puff + remaining + (base × multiplier for this session's size)
+  else (session size ≤ threshold):
+      if remaining > 0: deadline is left unchanged (a normal-sized session neither adds to nor cancels a standing binge deadline)
+      if remaining = 0: deadline = this session's last puff + base × 1 (a fresh, ordinary wait)
+
+multiplier(size) = 1 + 0.5 × max(0, size − threshold), then ×1.3 more if that session's hour was a personal peak hour
 ```
 
-A progress bar fills as the interval elapses, with a live countdown. Colours: **indigo** while waiting, **green** once you may pace a puff, **red** during a flagged binge.
+In practice: binge 5 puffs and you're told to wait, say, 2 hours. Puff 2 more within the wait window and the 2 hours **doesn't restart from zero and doesn't just vanish** — since that session is within threshold, the standing 2-hour deadline carries through unchanged. Binge again (another 5+ puff session) while time is still owed, and the new binge's own required wait is added on top of whatever was left, pushing the deadline further out. Once the original deadline has actually elapsed, a fresh session is judged purely on its own size — nothing carries over indefinitely. A long break (over 4 hours between sessions) is treated as genuine recovery and also clears any carried-over deadline, so accumulation never spans across sleep or a multi-hour gap.
+
+A progress bar fills as the interval elapses, with a live countdown. Colours: **indigo** while waiting, **green** once you may pace a puff, **red** while a binge — current or still carrying over from a recent one — governs the wait.
 
 ### Early-log nudge & urge surfing
 

@@ -888,16 +888,24 @@
             return size;
         }
 
+        // แตก timestamps ทั้งหมดเป็น session list: [{ size, lastTs }, ...] เรียงเก่า->ใหม่
+        function allSessions(ts) {
+            if (!ts.length) return [];
+            const sessions = [];
+            let size = 1, start = 0;
+            for (let i = 1; i < ts.length; i++) {
+                if (ts[i] - ts[i-1] < SESSION_GAP_MS) { size++; }
+                else { sessions.push({ size: size, lastTs: ts[i-1] }); size = 1; }
+            }
+            sessions.push({ size: size, lastTs: ts[ts.length-1] });
+            return sessions;
+        }
+
         // session เฉลี่ยจริง (จากทุก session ที่ผ่านมา)
         function avgSessionSize() {
             const ts = allTimestampsSorted();
             if (ts.length < 2) return 1;
-            let sessions = [], cur = 1;
-            for (let i = 1; i < ts.length; i++) {
-                if (ts[i] - ts[i-1] < SESSION_GAP_MS) cur++;
-                else { sessions.push(cur); cur = 1; }
-            }
-            sessions.push(cur);
+            const sessions = allSessions(ts).map(function(s){ return s.size; });
             const avg = sessions.reduce(function(s,v){return s+v;},0) / sessions.length;
             return avg;
         }
@@ -930,22 +938,79 @@
             return bins[hour] > mean * 1.5;
         }
 
+        // multiplier ที่ session ขนาด size ใดๆ ควรได้ (ส่วนที่เกินเกณฑ์ binge เท่านั้น) x peak factor ของชม.นั้น
+        function multiplierForSession(size, thr, atTs) {
+            const extra = Math.max(0, size - thr);
+            let mult = 1 + 0.5 * extra;
+            const h = new Date(atTs).getHours();
+            if (isPeakHour(h)) mult *= 1.3;
+            return mult;
+        }
+
+        // ช่องว่างระหว่าง session ที่นานเกินนี้ถือว่า "พักจริง" (เช่น นอนหลับ) -> ไม่สะสม deadline ข้ามช่วงนี้
+        //   ป้องกันไม่ให้เวลาค้างจากเมื่อวาน/เมื่อคืนมาบวกเพิ่มกับพฤติกรรมของวันใหม่แบบไม่มีที่สิ้นสุด
+        const ACCUMULATION_RESET_MS = 4 * 60 * 60 * 1000; // 4 ชั่วโมง
+
         // เวลาที่ควรรอถึงก่อน puff ถัดไป (ms timestamp) + เหตุผล
+        //   หลัก: สะสม (ไม่ใช่แค่เลือกค่าสูงสุด) — เดินไล่ทุก session ตามลำดับเวลา
+        //   ทุก session ใหม่ = (เวลาที่ยังเหลือค้างรอจาก deadline เดิม ณ ตอนที่ session นี้เกิด) + (เวลารอที่ session นี้ควรได้เอง)
+        //   ถ้าตอน session นี้เกิด เวลาเดิมหมดไปแล้ว (remaining=0) ก็เริ่มนับสดตาม rule ของ session นี้เท่านั้น
+        //   ถ้าห่างจาก session ก่อนหน้าเกิน ACCUMULATION_RESET_MS ถือว่าพักจริง -> เริ่มสะสมใหม่จากศูนย์
+        //   กลไกนี้ decay เองตามธรรมชาติเมื่อไม่มี puff ใหม่ ไม่ต้องมี lookback window แบบตัดขาด
         function nextAllowedTime() {
             const ts = allTimestampsSorted();
             if (!ts.length) return null;
-            const lastPuff = ts[ts.length - 1];
-            let mins = baseIntervalMinutes();
-            // ขยายตาม session size (เฉพาะส่วนที่เกินเกณฑ์)
-            const size = currentSessionSize();
+            const base = baseIntervalMinutes();
             const thr = bingeThreshold();
-            const extra = Math.max(0, size - thr);
-            let mult = 1 + 0.5 * extra;
-            // ช่วง peak ยืดเพิ่ม
+            const allSess = allSessions(ts);
+            // จำกัดให้พิจารณาเฉพาะ session ที่ไม่ถูกคั่นด้วยการพักยาว (>4ชม.) จาก session ล่าสุด
+            //   หา index ของ session แรกหลัง "ช่องว่างยาว" ล่าสุด (เดินจากท้ายสุดย้อนกลับไปหน้า)
+            let startIdx = 0;
+            for (let i = allSess.length - 1; i > 0; i--) {
+                if (allSess[i].lastTs - allSess[i-1].lastTs > ACCUMULATION_RESET_MS) { startIdx = i; break; }
+            }
+            const sessions = allSess.slice(startIdx);
+
+            let deadline = null; // ms timestamp ของเวลาที่อนุญาตให้สูบถัดไป ตามที่สะสมมา ณ จุดนี้
+            let governingSize = 0;
+            let governingTs = null;
+            sessions.forEach(function(s){
+                const remaining = deadline !== null ? Math.max(0, deadline - s.lastTs) : 0;
+                const isBinge = s.size > thr;
+                if (isBinge) {
+                    // session เกินเกณฑ์ -> สะสม: เวลาที่เหลือค้างเดิม + เวลารอเต็มของ session นี้
+                    const m = multiplierForSession(s.size, thr, s.lastTs);
+                    const ownWait = base * m * 60000;
+                    deadline = s.lastTs + remaining + ownWait;
+                    governingSize = s.size;
+                    governingTs = s.lastTs;
+                } else {
+                    // session ปกติ (≤ threshold) -> ไม่สะสมเพิ่ม ไม่ตัดของเดิมทิ้ง
+                    //   ถ้ายังมี remaining ค้างอยู่ ให้คง deadline เดิมไว้เฉยๆ (governing session ก็ยังเป็นตัวเดิม)
+                    //   ถ้าไม่มีอะไรค้างแล้ว ก็ได้แค่ wait ปกติของตัวเอง (mult 1x + peak ถ้ามี) และกลายเป็น governing ใหม่
+                    if (remaining > 0) {
+                        // deadline / governing คงเดิม (ไม่เปลี่ยนแปลง)
+                    } else {
+                        const m = multiplierForSession(s.size, thr, s.lastTs);
+                        deadline = s.lastTs + base * m * 60000;
+                        governingSize = s.size;
+                        governingTs = s.lastTs;
+                    }
+                }
+            });
+
+            const lastPuff = ts[ts.length - 1];
+            const finalTime = deadline;
+            const finalMins = (finalTime - lastPuff) / 60000;
             const h = new Date(lastPuff).getHours();
-            if (isPeakHour(h)) mult *= 1.3;
-            mins = mins * mult;
-            return { time: lastPuff + mins*60000, mins: mins, sessionSize: size, threshold: thr, peak: isPeakHour(h) };
+            return {
+                time: finalTime,
+                mins: finalMins,
+                sessionSize: currentSessionSize(),
+                governingSessionSize: governingSize,
+                threshold: thr,
+                peak: isPeakHour(h)
+            };
         }
 
         function inWakeWindow() {
@@ -989,8 +1054,9 @@
             const pct = total > 0 ? Math.round(elapsed/total*100) : 100;
             bar.style.width = pct + "%";
 
-            // สีตามสถานะ
-            const overBinge = info.sessionSize > info.threshold;
+            // สีตามสถานะ: ใช้ governingSessionSize (session ที่กำหนดเวลารอจริง อาจเป็น binge ก่อนหน้าที่ยังค้างผลอยู่)
+            //   ไม่ใช่แค่ sessionSize ปัจจุบัน กันไม่ให้การ์ดกลับเป็นปกติทั้งที่เวลายังยืดอยู่จาก binge ก่อนหน้า
+            const overBinge = info.governingSessionSize > info.threshold;
             if (overBinge) {
                 card.className = "rounded-2xl border p-4 text-center transition-colors bg-red-50 border-red-200";
                 bar.className = "h-full rounded-full transition-all duration-500 bg-red-500";
@@ -998,7 +1064,8 @@
                 nextTime.className = "text-2xl font-light mt-0.5 text-red-700";
                 countdown.className = "text-xs mt-2 font-medium text-red-600";
                 hint.className = "text-[10px] mt-1 text-red-600";
-                hint.innerText = info.sessionSize + " puffs in a row \u2014 this delivers a nicotine spike like several separate uses." + (info.peak ? " Peak-time craving; extra spacing applied." : "");
+                const sizeForHint = Math.max(info.sessionSize, info.governingSessionSize);
+                hint.innerText = sizeForHint + " puffs in a row \u2014 this delivers a nicotine spike like several separate uses." + (info.peak ? " Peak-time craving; extra spacing applied." : "");
             } else if (remaining > 0) {
                 card.className = "rounded-2xl border p-4 text-center transition-colors bg-indigo-50 border-indigo-100";
                 bar.className = "h-full rounded-full transition-all duration-500 bg-indigo-400";
