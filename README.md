@@ -124,7 +124,7 @@ The two targets play different roles: the **ceiling guarantees a minimum rate of
 
 ## Interval / pacing timer & binge detection
 
-Below the log buttons, a live card shows **the earliest time you should take your next puff** — turning "cut down" into a concrete, moment-to-moment target. It only appears during waking hours (**07:00–23:00**) and once there's at least one logged puff.
+Below the log buttons, a live card shows **the earliest time you should take your next puff** — turning "cut down" into a concrete, moment-to-moment target. It runs **around the clock (24 hours)** and appears once there's at least one logged puff.
 
 ### Base interval
 
@@ -134,7 +134,7 @@ The base gap is learned from **your own** recent behaviour:
 base interval (min) = mean real inter-session gap over the last 7 days × 1.1
 ```
 
-Puffs less than **2 minutes** apart are treated as one continuous *session*, so those tiny within-session gaps are **excluded** from the average — otherwise a rapid burst would collapse the interval toward zero. With too little data (fewer than 5 inter-session gaps), it falls back to spreading today's **challenge** evenly across the 16-hour waking window.
+Puffs less than **2 minutes** apart are treated as one continuous *session*, so those tiny within-session gaps are **excluded** from the average — otherwise a rapid burst would collapse the interval toward zero. With too little data (fewer than 5 inter-session gaps), it falls back to spreading today's **challenge** evenly across the full 24-hour day.
 
 ### Session & binge detection
 
