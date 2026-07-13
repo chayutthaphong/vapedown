@@ -135,6 +135,28 @@
             &#8634; Undo last puff
         </button>
 
+        <!-- Interval / pacing timer -->
+        <div id="intervalCard" class="hidden rounded-2xl border p-4 text-center transition-colors">
+            <p class="text-[10px] uppercase tracking-wider font-medium" id="intervalLabel">Next puff not before</p>
+            <p class="text-2xl font-light mt-0.5" id="intervalNextTime">&mdash;</p>
+            <div class="mt-2 h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                <div id="intervalBar" class="h-full rounded-full transition-all duration-500" style="width:0%"></div>
+            </div>
+            <p class="text-xs mt-2 font-medium" id="intervalCountdown">&mdash;</p>
+            <p class="text-[10px] mt-1" id="intervalHint"></p>
+            <button id="urgeSurfBtn" class="hidden mt-2 text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 underline">Start 5-min urge surf</button>
+        </div>
+
+        <!-- Craving toolkit: CBT loop + coping plan -->
+        <div class="grid grid-cols-2 gap-3">
+            <button id="cbtOpenBtn" class="bg-indigo-50 text-indigo-700 border border-indigo-100 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-100 active:scale-[0.98] transition">
+                &#129504; Work through a craving
+            </button>
+            <button id="copingOpenBtn" class="bg-teal-50 text-teal-700 border border-teal-100 py-2.5 rounded-xl text-sm font-medium hover:bg-teal-100 active:scale-[0.98] transition">
+                &#128220; Coping plans
+            </button>
+        </div>
+
         <!-- Report Tabs -->
         <div class="border-t border-gray-100 pt-5 mt-4">
             <div class="grid grid-cols-3 gap-2" id="reportTabs">
@@ -253,10 +275,11 @@
         </div>
 
         <div class="border-t border-gray-100 pt-5 mt-4">
-            <div class="flex justify-between items-end mb-3">
-                <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Daily Mood (Optional)</p>
+            <div class="flex justify-between items-end mb-1">
+                <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Overall Mood Today (Optional)</p>
                 <span id="moodSaved" class="text-[9px] font-semibold text-green-600 hidden">&#10003; Saved today</span>
             </div>
+            <p class="text-[10px] text-gray-400 mb-3">How you feel about the day as a whole &mdash; not a single craving. (Craving intensity is rated inside &ldquo;Work through a craving.&rdquo;)</p>
             <div class="flex justify-between px-1" id="moodContainer">
                 <button class="mood-btn text-3xl" onclick="setMood('Awful')" data-mood="Awful">&#128557;</button>
                 <button class="mood-btn text-3xl" onclick="setMood('Bad')" data-mood="Bad">&#128577;</button>
@@ -409,6 +432,40 @@
         </div>
     </div>
 
+    <!-- ===== CBT LOOP MODAL (6 steps) ===== -->
+    <div id="cbtModal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm hidden flex-col items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-xl relative overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="absolute top-0 left-0 h-1.5 bg-indigo-500 transition-all duration-300" id="cbtProgressBar" style="width:16%"></div>
+            <div class="flex items-center justify-between px-6 pt-5 pb-2">
+                <p class="text-[10px] uppercase tracking-wider text-indigo-500 font-semibold" id="cbtStepLabel">Step 1 of 6</p>
+                <button id="cbtCloseBtn" class="text-gray-300 hover:text-gray-500 text-lg leading-none">&times;</button>
+            </div>
+            <div class="px-6 pb-6 overflow-y-auto" id="cbtBody">
+                <h2 class="text-lg font-medium text-gray-900" id="cbtTitle">Notice the urge</h2>
+                <p class="text-xs text-gray-500 mt-1 mb-4" id="cbtSubtitle"></p>
+                <div id="cbtContent" class="space-y-3"></div>
+            </div>
+            <div class="flex gap-2 px-6 pb-6 pt-1">
+                <button id="cbtBackBtn" class="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl text-sm font-medium hover:bg-gray-200 transition">Back</button>
+                <button id="cbtNextBtn" class="flex-[2] bg-gray-900 text-white py-3 rounded-xl text-sm font-medium shadow-sm hover:bg-gray-800 transition">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== COPING PLAN LIBRARY MODAL ===== -->
+    <div id="copingModal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm hidden flex-col items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-xl relative overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-teal-500"></div>
+            <div class="flex items-center justify-between px-6 pt-5 pb-2">
+                <h2 class="text-lg font-medium text-gray-900">Coping plan library</h2>
+                <button id="copingCloseBtn" class="text-gray-300 hover:text-gray-500 text-lg leading-none">&times;</button>
+            </div>
+            <p class="text-xs text-gray-500 px-6 pb-2">Evidence-based ways to ride out a craving without a puff. Tap one to see how.</p>
+            <div class="flex gap-1.5 px-6 pb-3 flex-wrap" id="copingFilters"></div>
+            <div class="px-6 pb-6 overflow-y-auto space-y-2" id="copingList"></div>
+        </div>
+    </div>
+
     <!-- Script Block / Logic Updates -->
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxIYaNvnUunRzFh2giTfkT7yNaZrJkAwlyzAmdThDhzMCqhCL0JZS2lvyrtbv3WXE4esQ/exec";
@@ -480,7 +537,7 @@
             const data = localStorage.getItem(STORAGE_KEY);
             return data ? JSON.parse(data) : {
                 startDate: null, history: {}, timestamps: {},
-                assessments: {}, moodHistory: {}, notesHistory: {},
+                assessments: {}, moodHistory: {}, notesHistory: {}, cbtHistory: {},
                 programWeeks: 6
             };
         }
@@ -739,6 +796,224 @@
         }
 
         // ★ helper: เพิ่ม puff ทีละหลายครั้ง (แต่ละครั้งมี timestamp + log แยก sync ขึ้น Sheet)
+        //   (นิยามจริงอยู่ในบล็อก interval engine ด้านล่าง)
+
+        // เมื่อบันทึก/แก้ puff ของวันนี้ ให้ report เด้งกลับมาที่วันนี้
+        function snapToToday() {
+            if (anchorDate !== todayStr) {
+                anchorDate = todayStr;
+                const input = document.getElementById('reportDate');
+                if (input) input.value = todayStr;
+                updateAnchorHint();
+            }
+        }
+
+        // ===== INTERVAL / PACING + BINGE DETECTION ENGINE =====
+        const SESSION_GAP_MS = 2 * 60 * 1000;   // puff ห่าง < 2 นาที = session เดียว
+        const BINGE_CAP = 3;                     // เพดานแข็งของเกณฑ์ binge (hybrid)
+        const WAKE_START = 7, WAKE_END = 23;     // ช่วงตื่น (ไม่เด้ง timer นอกช่วงนี้)
+        let intervalTicker = null;
+
+        // รวม timestamps ทั้งหมด (ทุกวัน) เรียงจากเก่า->ใหม่
+        function allTimestampsSorted() {
+            const data = getStorage();
+            let arr = [];
+            for (let k in data.timestamps) {
+                (data.timestamps[k] || []).forEach(function(ts){ const t = new Date(ts).getTime(); if (!isNaN(t)) arr.push(t); });
+            }
+            arr.sort(function(a,b){ return a-b; });
+            return arr;
+        }
+
+        // base interval (นาที) = ช่วงห่างเฉลี่ยจริง 7 วันล่าสุด x 1.1
+        //   ถ้าข้อมูลน้อย (<5 gap) => 16 ชม. / challenge วันนี้
+        function baseIntervalMinutes() {
+            const now = Date.now();
+            const weekAgo = now - 7*24*60*60*1000;
+            const ts = allTimestampsSorted().filter(function(t){ return t >= weekAgo; });
+            // คำนวณ gap เฉพาะภายใน session เดียวกันไม่นับ (นับ gap ที่ >2 นาที = ระหว่าง session จริง)
+            const gaps = [];
+            for (let i = 1; i < ts.length; i++) {
+                const g = ts[i] - ts[i-1];
+                if (g >= SESSION_GAP_MS) gaps.push(g);   // เฉพาะ gap ระหว่าง session
+            }
+            if (gaps.length >= 5) {
+                const avg = gaps.reduce(function(s,g){return s+g;},0) / gaps.length;
+                return (avg / 60000) * 1.1;
+            }
+            // fallback: 16 ชม. / challenge
+            const ch = challengeForDate(todayStr) || 1;
+            return (WAKE_END - WAKE_START) * 60 / ch;
+        }
+
+        // session ปัจจุบันมีกี่ puff (นับ puff ท้ายๆ ที่ห่างกัน < 2 นาที)
+        function currentSessionSize() {
+            const ts = allTimestampsSorted();
+            if (!ts.length) return 0;
+            let size = 1;
+            for (let i = ts.length - 1; i > 0; i--) {
+                if (ts[i] - ts[i-1] < SESSION_GAP_MS) size++;
+                else break;
+            }
+            return size;
+        }
+
+        // session เฉลี่ยจริง (จากทุก session ที่ผ่านมา)
+        function avgSessionSize() {
+            const ts = allTimestampsSorted();
+            if (ts.length < 2) return 1;
+            let sessions = [], cur = 1;
+            for (let i = 1; i < ts.length; i++) {
+                if (ts[i] - ts[i-1] < SESSION_GAP_MS) cur++;
+                else { sessions.push(cur); cur = 1; }
+            }
+            sessions.push(cur);
+            const avg = sessions.reduce(function(s,v){return s+v;},0) / sessions.length;
+            return avg;
+        }
+
+        // เกณฑ์ binge = min( 3 , avgSession + 1 )  (hybrid: เรียนได้เฉพาะทิศที่เข้มขึ้น)
+        function bingeThreshold() {
+            return Math.min(BINGE_CAP, Math.round(avgSessionSize()) + 1);
+        }
+
+        // ชั่วโมงไหนเป็น peak (>150% ของค่าเฉลี่ยรายชม.ของวันนี้)
+        function isPeakHour(hour) {
+            const data = getStorage();
+            const bins = hourHistogram(data, lastNDates(7, 0));
+            const active = bins.filter(function(v){ return v > 0; });
+            if (!active.length) return false;
+            const mean = active.reduce(function(s,v){return s+v;},0) / active.length;
+            return bins[hour] > mean * 1.5;
+        }
+
+        // เวลาที่ควรรอถึงก่อน puff ถัดไป (ms timestamp) + เหตุผล
+        function nextAllowedTime() {
+            const ts = allTimestampsSorted();
+            if (!ts.length) return null;
+            const lastPuff = ts[ts.length - 1];
+            let mins = baseIntervalMinutes();
+            // ขยายตาม session size (เฉพาะส่วนที่เกินเกณฑ์)
+            const size = currentSessionSize();
+            const thr = bingeThreshold();
+            const extra = Math.max(0, size - thr);
+            let mult = 1 + 0.5 * extra;
+            // ช่วง peak ยืดเพิ่ม
+            const h = new Date(lastPuff).getHours();
+            if (isPeakHour(h)) mult *= 1.3;
+            mins = mins * mult;
+            return { time: lastPuff + mins*60000, mins: mins, sessionSize: size, threshold: thr, peak: isPeakHour(h) };
+        }
+
+        function inWakeWindow() {
+            const h = new Date().getHours();
+            return h >= WAKE_START && h < WAKE_END;
+        }
+
+        function fmtClock(ms) {
+            const d = new Date(ms);
+            const p = function(n){return (n<10?"0":"")+n;};
+            return p(d.getHours()) + ":" + p(d.getMinutes());
+        }
+        function fmtCountdown(ms) {
+            if (ms <= 0) return "ready";
+            const totalSec = Math.round(ms/1000);
+            const m = Math.floor(totalSec/60), s = totalSec%60;
+            return (m>0? m+"m " : "") + (s<10&&m>0?"0":"") + s + "s";
+        }
+
+        function updateIntervalCard() {
+            const card = document.getElementById('intervalCard');
+            const info = nextAllowedTime();
+            // ไม่มีข้อมูล / นอกช่วงตื่น => ซ่อน
+            if (!info || !inWakeWindow()) { card.classList.add('hidden'); return; }
+            card.classList.remove('hidden');
+
+            const now = Date.now();
+            const remaining = info.time - now;
+            const nextTime = document.getElementById('intervalNextTime');
+            const countdown = document.getElementById('intervalCountdown');
+            const bar = document.getElementById('intervalBar');
+            const hint = document.getElementById('intervalHint');
+            const label = document.getElementById('intervalLabel');
+
+            nextTime.innerText = fmtClock(info.time);
+            countdown.innerText = remaining > 0 ? fmtCountdown(remaining) + " remaining" : "You can pace a puff now";
+
+            // progress bar
+            const total = info.mins * 60000;
+            const elapsed = Math.max(0, Math.min(total, total - remaining));
+            const pct = total > 0 ? Math.round(elapsed/total*100) : 100;
+            bar.style.width = pct + "%";
+
+            // สีตามสถานะ
+            const overBinge = info.sessionSize > info.threshold;
+            if (overBinge) {
+                card.className = "rounded-2xl border p-4 text-center transition-colors bg-red-50 border-red-200";
+                bar.className = "h-full rounded-full transition-all duration-500 bg-red-500";
+                label.className = "text-[10px] uppercase tracking-wider font-medium text-red-500";
+                nextTime.className = "text-2xl font-light mt-0.5 text-red-700";
+                countdown.className = "text-xs mt-2 font-medium text-red-600";
+                hint.className = "text-[10px] mt-1 text-red-600";
+                hint.innerText = info.sessionSize + " puffs in a row \u2014 this delivers a nicotine spike like several separate uses." + (info.peak ? " Peak-time craving; extra spacing applied." : "");
+            } else if (remaining > 0) {
+                card.className = "rounded-2xl border p-4 text-center transition-colors bg-indigo-50 border-indigo-100";
+                bar.className = "h-full rounded-full transition-all duration-500 bg-indigo-400";
+                label.className = "text-[10px] uppercase tracking-wider font-medium text-indigo-400";
+                nextTime.className = "text-2xl font-light mt-0.5 text-indigo-700";
+                countdown.className = "text-xs mt-2 font-medium text-indigo-600";
+                hint.className = "text-[10px] mt-1 text-gray-400";
+                hint.innerText = info.peak ? "Heavier-use window \u2014 spacing widened to help." : "Stretching the gap trains your body to need less.";
+            } else {
+                card.className = "rounded-2xl border p-4 text-center transition-colors bg-green-50 border-green-100";
+                bar.className = "h-full rounded-full transition-all duration-500 bg-green-400";
+                label.className = "text-[10px] uppercase tracking-wider font-medium text-green-500";
+                nextTime.className = "text-2xl font-light mt-0.5 text-green-700";
+                countdown.className = "text-xs mt-2 font-medium text-green-600";
+                hint.className = "text-[10px] mt-1 text-gray-400";
+                hint.innerText = "If a craving hits, try riding it out for a few minutes first.";
+            }
+        }
+
+        // เตือนเมื่อกดก่อนครบเวลา (เบาๆ ไม่ห้าม) + เสนอ urge surf
+        function preLogCheck() {
+            const info = nextAllowedTime();
+            if (!info) return;
+            const remaining = info.time - Date.now();
+            const surfBtn = document.getElementById('urgeSurfBtn');
+            if (remaining > 0 && inWakeWindow()) {
+                const hint = document.getElementById('intervalHint');
+                const mLeft = Math.ceil(remaining/60000);
+                hint.innerText = "You logged " + mLeft + " min early. Cravings usually peak then fade \u2014 want to ride it out?";
+                document.getElementById('intervalHint').className = "text-[10px] mt-1 text-amber-600";
+                surfBtn.classList.remove('hidden');
+            } else {
+                surfBtn.classList.add('hidden');
+            }
+        }
+
+        // urge surf: countdown 5 นาทีในปุ่ม
+        let surfTimer = null;
+        document.getElementById('urgeSurfBtn').addEventListener('click', function() {
+            const btn = this;
+            if (surfTimer) { clearInterval(surfTimer); surfTimer = null; btn.innerText = "Start 5-min urge surf"; return; }
+            let left = 5*60;
+            const tick = function(){
+                const m = Math.floor(left/60), s = left%60;
+                btn.innerText = "Urge surfing: " + m + ":" + (s<10?"0":"") + s + " (tap to stop)";
+                if (left <= 0) { clearInterval(surfTimer); surfTimer = null; btn.innerText = "\u2713 You rode it out \u2014 great."; }
+                left--;
+            };
+            tick();
+            surfTimer = setInterval(tick, 1000);
+        });
+
+        function startIntervalTicker() {
+            if (intervalTicker) clearInterval(intervalTicker);
+            intervalTicker = setInterval(updateIntervalCard, 1000);
+            updateIntervalCard();
+        }
+
         function addPuffs(n) {
             let data = getStorage();
             if (!data.timestamps[todayStr]) data.timestamps[todayStr] = [];
@@ -752,16 +1027,8 @@
             saveStorage(data);
             snapToToday();
             refreshUI();
-        }
-
-        // เมื่อบันทึก/แก้ puff ของวันนี้ ให้ report เด้งกลับมาที่วันนี้
-        function snapToToday() {
-            if (anchorDate !== todayStr) {
-                anchorDate = todayStr;
-                const input = document.getElementById('reportDate');
-                if (input) input.value = todayStr;
-                updateAnchorHint();
-            }
+            preLogCheck();
+            updateIntervalCard();
         }
 
         logBtn.addEventListener('click', function() { addPuffs(1); });
@@ -776,6 +1043,7 @@
                 saveStorage(data);
                 snapToToday();
                 refreshUI();
+                updateIntervalCard();
                 postAction({ action: 'undo', date: todayStr });
             }
         });
@@ -1510,11 +1778,297 @@
             maybeShowReminderBanner();
         }
 
+        // ============================================================
+        //  COPING PLAN LIBRARY  (evidence-based craving strategies)
+        //  Grounded in CBT for smoking cessation: the "4 Ds" (Delay,
+        //  Deep-breathe, Drink water, Distract/Do something else),
+        //  urge surfing, and stimulus-control / trigger decoupling.
+        // ============================================================
+        const COPING_CATS = [
+            { id: 'all',      label: 'All' },
+            { id: 'stress',   label: 'Stress / low mood' },
+            { id: 'boredom',  label: 'Boredom' },
+            { id: 'social',   label: 'Social / others vaping' },
+            { id: 'routine',  label: 'Habit / routine' },
+            { id: 'physical', labelShort: 'Withdrawal', label: 'Withdrawal' }
+        ];
+        const COPING_PLANS = [
+            { cat:'physical', icon:'\u23F1\uFE0F', title:'Delay & ride it out',
+              body:'Cravings are waves: they climb, peak within about 3\u20135 minutes, then fade whether or not you puff. Set a short timer and just wait. Use the 5-min urge surf on the main screen \u2014 most urges are noticeably weaker by the end.' },
+            { cat:'stress', icon:'\uD83E\uDEC1', title:'Paced breathing (4\u20136)',
+              body:'Breathe in for 4 counts, out for 6, for one minute. The long exhale settles the stress response that a puff would otherwise \u201Csolve\u201D \u2014 giving you the calming effect you were reaching for, without the nicotine.' },
+            { cat:'physical', icon:'\uD83D\uDCA7', title:'Drink cold water',
+              body:'Sip slowly or hold cold water in your mouth. It occupies the same hand-to-mouth loop as vaping and blunts the oral craving. Keep a bottle within reach during your usual heavy-use windows.' },
+            { cat:'boredom', icon:'\uD83D\uDEB6', title:'Change your location',
+              body:'Stand up and move to a different room, or step outside for a two-minute walk. Breaking the physical setting interrupts the automatic reach for the pod and resets your attention.' },
+            { cat:'routine', icon:'\u270B', title:'Decouple the trigger',
+              body:'If a puff is glued to a routine (coffee, driving, after a meal), deliberately do that routine differently once \u2014 hold your cup in the other hand, take a new route, brush your teeth right after eating. You are teaching your brain the cue no longer ends in a puff.' },
+            { cat:'social', icon:'\uD83D\uDDE3\uFE0F', title:'Have a line ready',
+              body:'Decide in advance what you\u2019ll say when offered or when others vape: \u201CI\u2019m good, I\u2019m cutting down.\u201D Step away from the immediate cloud, hold a drink instead, and rejoin once the moment passes.' },
+            { cat:'boredom', icon:'\uD83E\uDDE9', title:'Occupy your hands',
+              body:'Fidget toy, stress ball, doodle, quick phone game, tidy one surface. Two minutes of hand-busy activity carries you past the peak of the urge.' },
+            { cat:'stress', icon:'\uD83D\uDCDD', title:'Name it to tame it',
+              body:'Silently label what\u2019s happening: \u201CThis is a craving, triggered by stress. It will pass.\u201D Putting words to the urge engages the thinking brain and loosens the automatic pull.' },
+            { cat:'routine', icon:'\uD83D\uDD52', title:'Stretch the interval',
+              body:'Don\u2019t say \u201Cnever\u201D \u2014 say \u201Cnot yet.\u201D Add ten minutes to your next puff, then ten more. The pacing timer helps: each gap you win trains your body to expect less.' },
+            { cat:'social', icon:'\uD83D\uDCF5', title:'Leave the cue behind',
+              body:'Put the device in another room, a bag, or the car. Out-of-reach beats in-pocket every time \u2014 stimulus control is one of the most reliable relapse-prevention tactics.' },
+            { cat:'stress', icon:'\uD83E\uDD17', title:'Self-compassion, not a slip spiral',
+              body:'If you\u2019ve already puffed more than you wanted, one lapse is not failure. Note the trigger, reset the next interval, and carry on. Guilt tends to fuel more use, not less.' },
+            { cat:'boredom', icon:'\uD83D\uDCDE', title:'Reach out',
+              body:'Text a friend, call someone, or post in a quit-support group. A 60-second connection redirects attention and reminds you why you started stepping down.' }
+        ];
+
+        let copingFilter = 'all';
+        function renderCopingFilters() {
+            const wrap = document.getElementById('copingFilters');
+            wrap.innerHTML = '';
+            COPING_CATS.forEach(function(c){
+                const b = document.createElement('button');
+                const on = copingFilter === c.id;
+                b.className = 'text-[11px] px-2.5 py-1 rounded-full border transition ' +
+                    (on ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-500 border-gray-200 hover:border-teal-300');
+                b.innerText = c.labelShort || c.label;
+                b.addEventListener('click', function(){ copingFilter = c.id; renderCopingFilters(); renderCopingList(); });
+                wrap.appendChild(b);
+            });
+        }
+        function renderCopingList() {
+            const list = document.getElementById('copingList');
+            list.innerHTML = '';
+            const items = COPING_PLANS.filter(function(p){ return copingFilter === 'all' || p.cat === copingFilter; });
+            items.forEach(function(p){
+                const card = document.createElement('div');
+                card.className = 'border border-gray-100 rounded-2xl overflow-hidden';
+                const head = document.createElement('button');
+                head.className = 'w-full flex items-center gap-3 p-3 text-left hover:bg-gray-50 transition';
+                head.innerHTML = '<span class="text-lg">' + p.icon + '</span>' +
+                    '<span class="text-sm font-medium text-gray-800 flex-1">' + p.title + '</span>' +
+                    '<span class="text-gray-300 text-xs cbt-chev">&#9662;</span>';
+                const bodyEl = document.createElement('div');
+                bodyEl.className = 'px-3 pb-3 text-xs text-gray-600 leading-relaxed hidden';
+                bodyEl.innerText = p.body;
+                head.addEventListener('click', function(){ bodyEl.classList.toggle('hidden'); });
+                card.appendChild(head); card.appendChild(bodyEl);
+                list.appendChild(card);
+            });
+            if (!items.length) list.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">No plans in this category.</p>';
+        }
+        function openCoping() {
+            renderCopingFilters(); renderCopingList();
+            const m = document.getElementById('copingModal');
+            m.classList.remove('hidden'); m.classList.add('flex');
+        }
+        function closeCoping() {
+            const m = document.getElementById('copingModal');
+            m.classList.add('hidden'); m.classList.remove('flex');
+        }
+        document.getElementById('copingOpenBtn').addEventListener('click', openCoping);
+        document.getElementById('copingCloseBtn').addEventListener('click', closeCoping);
+        document.getElementById('copingModal').addEventListener('click', function(e){ if (e.target === this) closeCoping(); });
+
+        // ============================================================
+        //  CBT LOOP  (6-step guided craving worksheet)
+        //  Trigger -> Automatic thought -> Craving intensity ->
+        //  Reframe -> Coping action -> Outcome reflection
+        // ============================================================
+        const CBT_TRIGGERS = [
+            { id:'stress',  label:'Stress / anxiety' },
+            { id:'boredom', label:'Boredom / restlessness' },
+            { id:'social',  label:'Others vaping / offered' },
+            { id:'routine', label:'Habit cue (coffee, meal, drive\u2026)' },
+            { id:'lowmood', label:'Low mood / sadness' },
+            { id:'physical',label:'Physical withdrawal' }
+        ];
+        // map trigger id -> coping category for a tailored suggestion
+        const TRIGGER_TO_COPINGCAT = { stress:'stress', lowmood:'stress', boredom:'boredom', social:'social', routine:'routine', physical:'physical' };
+
+        let cbtStep = 1;
+        const CBT_TOTAL = 6;
+        let cbtRecord = null;   // in-progress record
+
+        function newCbtRecord() {
+            return { date: todayStr, ts: new Date().toISOString(), trigger:null, thought:'', intensity:5, reframe:'', action:null, actionTaken:null, afterIntensity:null };
+        }
+
+        function chosenCopingSuggestion() {
+            const cat = TRIGGER_TO_COPINGCAT[cbtRecord && cbtRecord.trigger] || 'physical';
+            const pool = COPING_PLANS.filter(function(p){ return p.cat === cat; });
+            return pool.length ? pool : COPING_PLANS.slice(0,3);
+        }
+
+        function renderCbtStep() {
+            const content = document.getElementById('cbtContent');
+            const title = document.getElementById('cbtTitle');
+            const sub = document.getElementById('cbtSubtitle');
+            const label = document.getElementById('cbtStepLabel');
+            const bar = document.getElementById('cbtProgressBar');
+            const back = document.getElementById('cbtBackBtn');
+            const next = document.getElementById('cbtNextBtn');
+            label.innerText = 'Step ' + cbtStep + ' of ' + CBT_TOTAL;
+            bar.style.width = Math.round(cbtStep / CBT_TOTAL * 100) + '%';
+            back.style.visibility = cbtStep === 1 ? 'hidden' : 'visible';
+            next.innerText = cbtStep === CBT_TOTAL ? 'Done' : (cbtStep === 5 ? 'I tried it' : 'Next');
+            content.innerHTML = '';
+
+            if (cbtStep === 1) {
+                title.innerText = 'Notice the urge';
+                sub.innerText = 'A craving is here. Before acting, let\u2019s slow it down. What set it off?';
+                CBT_TRIGGERS.forEach(function(t){
+                    const b = document.createElement('button');
+                    const on = cbtRecord.trigger === t.id;
+                    b.className = 'w-full text-left text-sm px-3 py-2.5 rounded-xl border transition ' +
+                        (on ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-indigo-300');
+                    b.innerText = t.label;
+                    b.addEventListener('click', function(){ cbtRecord.trigger = t.id; renderCbtStep(); });
+                    content.appendChild(b);
+                });
+            } else if (cbtStep === 2) {
+                title.innerText = 'Catch the thought';
+                sub.innerText = 'What is the craving telling you right now? Write the exact thought (e.g. \u201CI can\u2019t cope without it\u201D).';
+                const ta = document.createElement('textarea');
+                ta.className = 'w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700 h-24 focus:outline-none focus:border-indigo-400';
+                ta.value = cbtRecord.thought;
+                ta.placeholder = 'The thought driving the urge\u2026';
+                ta.addEventListener('input', function(){ cbtRecord.thought = ta.value; });
+                content.appendChild(ta);
+            } else if (cbtStep === 3) {
+                title.innerText = 'Rate the craving';
+                sub.innerText = 'How strong is this urge right now, 0 (none) to 10 (overwhelming)? This is just this craving \u2014 not your overall mood for the day. Naming the number already loosens its grip.';
+                const val = document.createElement('p');
+                val.className = 'text-center text-3xl font-light text-indigo-600';
+                val.innerText = cbtRecord.intensity;
+                const range = document.createElement('input');
+                range.type = 'range'; range.min = 0; range.max = 10; range.value = cbtRecord.intensity;
+                range.className = 'w-full accent-indigo-600';
+                range.addEventListener('input', function(){ cbtRecord.intensity = parseInt(range.value,10); val.innerText = range.value; });
+                content.appendChild(val); content.appendChild(range);
+            } else if (cbtStep === 4) {
+                title.innerText = 'Talk back to it';
+                sub.innerText = 'Answer the thought with something truer and kinder. A few reframes to borrow \u2014 or write your own.';
+                const suggestions = [
+                    'This craving will pass in a few minutes whether I puff or not.',
+                    'I\u2019ve gotten through urges before \u2014 I can ride this one out too.',
+                    'One puff keeps the dependence alive; skipping it is me healing.',
+                    'I don\u2019t need it to cope \u2014 I have other ways that actually work.'
+                ];
+                suggestions.forEach(function(s){
+                    const b = document.createElement('button');
+                    b.className = 'w-full text-left text-xs px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-600 hover:border-indigo-300 transition';
+                    b.innerText = '\u201C' + s + '\u201D';
+                    b.addEventListener('click', function(){ ta.value = s; cbtRecord.reframe = s; });
+                    content.appendChild(b);
+                });
+                const ta = document.createElement('textarea');
+                ta.className = 'w-full text-sm bg-white border border-gray-200 rounded-xl px-3 py-2 text-gray-700 h-20 mt-1 focus:outline-none focus:border-indigo-400';
+                ta.value = cbtRecord.reframe;
+                ta.placeholder = 'Your reframe\u2026';
+                ta.addEventListener('input', function(){ cbtRecord.reframe = ta.value; });
+                content.appendChild(ta);
+            } else if (cbtStep === 5) {
+                title.innerText = 'Pick a coping action';
+                sub.innerText = 'Choose one thing to do instead, right now. Tailored to your trigger:';
+                chosenCopingSuggestion().forEach(function(p){
+                    const b = document.createElement('button');
+                    const on = cbtRecord.action === p.title;
+                    b.className = 'w-full text-left p-3 rounded-xl border transition ' +
+                        (on ? 'bg-indigo-50 border-indigo-300' : 'bg-gray-50 border-gray-200 hover:border-indigo-300');
+                    b.innerHTML = '<span class="text-sm font-medium text-gray-800">' + p.icon + ' ' + p.title + '</span>' +
+                        '<span class="block text-[11px] text-gray-500 mt-0.5">' + p.body + '</span>';
+                    b.addEventListener('click', function(){ cbtRecord.action = p.title; renderCbtStep(); });
+                    content.appendChild(b);
+                });
+                const more = document.createElement('button');
+                more.className = 'w-full text-[11px] text-teal-600 font-medium underline pt-1';
+                more.innerText = 'Browse the full coping library';
+                more.addEventListener('click', function(){ openCoping(); });
+                content.appendChild(more);
+            } else if (cbtStep === 6) {
+                title.innerText = 'How is the urge now?';
+                sub.innerText = 'You paused instead of reacting \u2014 that\u2019s the skill. Re-rate the craving to see the shift.';
+                const startVal = cbtRecord.intensity;
+                const val = document.createElement('p');
+                val.className = 'text-center text-3xl font-light text-indigo-600';
+                const cur = cbtRecord.afterIntensity == null ? startVal : cbtRecord.afterIntensity;
+                val.innerText = cur;
+                const range = document.createElement('input');
+                range.type = 'range'; range.min = 0; range.max = 10; range.value = cur;
+                range.className = 'w-full accent-indigo-600';
+                const delta = document.createElement('p');
+                delta.className = 'text-center text-xs mt-2 font-medium';
+                function paintDelta(){
+                    const a = cbtRecord.afterIntensity == null ? startVal : cbtRecord.afterIntensity;
+                    const d = startVal - a;
+                    if (d > 0) { delta.innerText = 'Down ' + d + ' point' + (d>1?'s':'') + ' \u2014 the wave is passing. \uD83C\uDF0A'; delta.className='text-center text-xs mt-2 font-medium text-green-600'; }
+                    else if (d === 0) { delta.innerText = 'Still holding on \u2014 give it a few more minutes, or try another coping action.'; delta.className='text-center text-xs mt-2 font-medium text-amber-600'; }
+                    else { delta.innerText = 'Climbing \u2014 that happens. Consider stepping away from the cue or reaching out for support.'; delta.className='text-center text-xs mt-2 font-medium text-amber-600'; }
+                }
+                range.addEventListener('input', function(){ cbtRecord.afterIntensity = parseInt(range.value,10); val.innerText = range.value; paintDelta(); });
+                paintDelta();
+                content.appendChild(val); content.appendChild(range); content.appendChild(delta);
+            }
+        }
+
+        function cbtCanAdvance() {
+            if (cbtStep === 1) return !!cbtRecord.trigger;
+            if (cbtStep === 5) return !!cbtRecord.action;
+            return true;
+        }
+
+        function saveCbtRecord() {
+            if (cbtRecord.afterIntensity == null) cbtRecord.afterIntensity = cbtRecord.intensity;
+            const data = getStorage();
+            data.cbtHistory = data.cbtHistory || {};
+            (data.cbtHistory[todayStr] = data.cbtHistory[todayStr] || []).push(cbtRecord);
+            // append a compact human-readable line to the day's notes (syncs to Sheets, no schema change)
+            const trigLabel = (CBT_TRIGGERS.find(function(t){return t.id===cbtRecord.trigger;})||{}).label || cbtRecord.trigger || '?';
+            const line = '[CBT ' + new Date(cbtRecord.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) + '] '
+                + 'trigger: ' + trigLabel
+                + '; urge ' + cbtRecord.intensity + '\u2192' + cbtRecord.afterIntensity
+                + (cbtRecord.action ? '; action: ' + cbtRecord.action : '');
+            const prev = (data.notesHistory && data.notesHistory[todayStr]) ? data.notesHistory[todayStr] : '';
+            data.notesHistory = data.notesHistory || {};
+            data.notesHistory[todayStr] = prev ? (prev + '\n' + line) : line;
+            saveStorage(data);
+            if (noteInput) noteInput.value = data.notesHistory[todayStr];
+            if (typeof updateSavedBadges === 'function') updateSavedBadges();
+            postAction({ action: 'meta', date: todayStr, mood: (data.moodHistory && data.moodHistory[todayStr] || ''), note: data.notesHistory[todayStr] });
+        }
+
+        function openCbt() {
+            cbtStep = 1;
+            cbtRecord = newCbtRecord();
+            renderCbtStep();
+            const m = document.getElementById('cbtModal');
+            m.classList.remove('hidden'); m.classList.add('flex');
+        }
+        function closeCbt() {
+            const m = document.getElementById('cbtModal');
+            m.classList.add('hidden'); m.classList.remove('flex');
+        }
+        document.getElementById('cbtOpenBtn').addEventListener('click', openCbt);
+        document.getElementById('cbtCloseBtn').addEventListener('click', closeCbt);
+        document.getElementById('cbtModal').addEventListener('click', function(e){ if (e.target === this) closeCbt(); });
+        document.getElementById('cbtBackBtn').addEventListener('click', function(){ if (cbtStep > 1) { cbtStep--; renderCbtStep(); } });
+        document.getElementById('cbtNextBtn').addEventListener('click', function(){
+            if (!cbtCanAdvance()) {
+                const sub = document.getElementById('cbtSubtitle');
+                sub.className = 'text-xs text-red-500 mt-1 mb-4';
+                sub.innerText = cbtStep === 1 ? 'Pick the trigger that fits best to continue.' : 'Choose a coping action to continue.';
+                return;
+            }
+            document.getElementById('cbtSubtitle').className = 'text-xs text-gray-500 mt-1 mb-4';
+            if (cbtStep === CBT_TOTAL) { saveCbtRecord(); closeCbt(); refreshUI(); return; }
+            cbtStep++;
+            renderCbtStep();
+        });
+
         setupReportTabs();
         setupDatePicker();
         setupReminder();
         initApp();
         checkMonthlyAuto();
+        startIntervalTicker();
     </script>
 </body>
 </html>
