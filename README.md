@@ -172,12 +172,11 @@ The **🧠 Work through a craving** button opens a guided **6-step** worksheet b
 5. **Pick a coping action** — suggestions are **tailored to the trigger you chose**, with a link into the full coping library. *Required to continue.*
 6. **Re-rate the urge** — score it again; the app shows the change and responds accordingly (encouragement if it dropped, a nudge to try another action or step away from the cue if it held or rose).
 
-**What gets saved:** each completed loop is stored as a structured record in a local `cbtHistory[date]` array, and is written to Google Sheets in **two** ways:
+**What gets saved:** CBT is kept **completely separate from the user's own Clinical Notes** — it never writes into the notes field. Each completed loop is stored as a structured record in a local `cbtHistory[date]` array, and posted to Google Sheets as a **structured `cbt` record** (`action: 'cbt'`) that writes each field to its **own column** in a dedicated `cbt` sheet — `date`, `timestamp`, `time`, `trigger_id`, `trigger_label`, `thought`, `urge_before`, `urge_after`, `urge_delta`, `reframe`, `action_taken` — so the data is ready for pivots and analysis without parsing text.
 
-1. A compact one-line summary appended to that day's notes (human-readable backup, e.g. `[CBT 08:12] trigger: Habit cue (coffee, meal, drive…); urge 7→7; action: Stretch the interval`).
-2. A **structured `cbt` post** (`action: 'cbt'`) that writes each field to its **own column** in a dedicated `cbt` sheet — `date`, `timestamp`, `time`, `trigger_id`, `trigger_label`, `thought`, `urge_before`, `urge_after`, `urge_delta`, `reframe`, `action_taken` — so the data is ready for pivots and analysis without parsing text.
+The **content you enter is not shown back** on the main screen; instead a small badge on the "Work through a craving" button shows **how many CBT loops you've done today** (e.g. "2× today"), resetting each day.
 
-The structured columns require a small Apps Script handler (see `apps_script_cbt_addon.md`); until it's added, the `cbt` posts are harmlessly ignored and you still get the one-line notes backup. The richer `cbtHistory` structure also stays on-device and is never overwritten by the sync merge.
+The structured columns require a small Apps Script handler (see `apps_script_cbt_addon.md`); until it's added, the `cbt` posts are harmlessly ignored. The `cbtHistory` structure stays on-device and is never overwritten by the sync merge.
 
 ---
 
@@ -250,7 +249,7 @@ Any "% of ceiling" or "% of challenge" figure is colour-graded so risk is visibl
 ## Mood & notes
 
 - **Overall mood today** — a 5-point emoji scale (Awful → Great) capturing how you feel about the **day as a whole**. This is deliberately distinct from the 0–10 craving rating inside the CBT loop; the UI labels and a helper line make the difference explicit so the two aren't confused.
-- **Clinical notes / triggers** — a free-text field for recording cravings, triggers, or withdrawal symptoms. Completed CBT loops also append their one-line summaries here.
+- **Clinical notes / triggers** — a free-text field for recording cravings, triggers, or withdrawal symptoms. This is the user's own field; CBT loops are kept separate and do **not** write here.
 
 Both are stored per day and synced to Google Sheets.
 
@@ -286,7 +285,7 @@ The app talks to a Google Apps Script (GAS) web app bound to a Google Sheet.
 
 - **On app open** — `doGet` returns JSON (`logs`, `assessments`, `config`, `mood`, `notes`); the app counts daily puffs from `logs`
 - **On each logged puff (incl. +3 / +5)** — `doPost` writes a new log row immediately, one per puff
-- **Also synced** — assessments, mood/notes, and program settings. CBT loop summaries ride along inside the notes field, so **no GAS changes are needed** to capture them.
+- **Also synced** — assessments, mood/notes, and program settings. CBT loops are posted separately to their own `cbt` sheet (see `apps_script_cbt_addon.md`).
 
 **Dates:** handled as `YYYY-MM-DD` strings throughout — for the sheet's `date`, `timestamp`, and `config.startDate`, and when comparing assessment dates to the report anchor. This string-based comparison avoids timezone drift (a UTC `Date` can land on the wrong local day), which otherwise made counts and dependence values disappear.
 

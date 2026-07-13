@@ -149,8 +149,9 @@
 
         <!-- Craving toolkit: CBT loop + coping plan -->
         <div class="grid grid-cols-2 gap-3">
-            <button id="cbtOpenBtn" class="bg-indigo-50 text-indigo-700 border border-indigo-100 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-100 active:scale-[0.98] transition">
+            <button id="cbtOpenBtn" class="relative bg-indigo-50 text-indigo-700 border border-indigo-100 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-100 active:scale-[0.98] transition">
                 &#129504; Work through a craving
+                <span id="cbtCountBadge" class="hidden absolute -top-1.5 -right-1.5 bg-indigo-600 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full shadow-sm"></span>
             </button>
             <button id="copingOpenBtn" class="bg-teal-50 text-teal-700 border border-teal-100 py-2.5 rounded-xl text-sm font-medium hover:bg-teal-100 active:scale-[0.98] transition">
                 &#128220; Coping plans
@@ -548,13 +549,39 @@
         }
 
         function initApp() {
-            let d0 = getStorage();
-            if (!d0.startDate) { d0.startDate = todayStr; saveStorage(d0);
-                if (cloudEnabled()) postAction({ action: 'config', key: 'startDate', value: todayStr, date: new Date().toISOString() }); }
-
+            // อย่าเพิ่งตั้ง startDate = วันนี้ แล้ว push ทับ config ก่อนโหลด Sheet
+            //   (เดิมทำแบบนั้น -> ถ้าเปิดในเครื่องใหม่ที่ localStorage ว่าง จะทับ startDate จริงที่อยู่บน Sheet
+            //    ทำให้ dayNum/avg เพี้ยน) ให้โหลด Sheet ก่อน แล้วค่อยตัดสิน startDate จากข้อมูลจริง
             fetchFromSheets().then(function(){
+                reconcileStartDate();
                 renderFromState();
             });
+        }
+
+        // ตั้ง startDate ที่ถูกต้อง = วันแรกสุดที่มีข้อมูลจริง (logs/config) ไม่งั้นค่อย fallback เป็นวันนี้
+        function reconcileStartDate() {
+            let data = getStorage();
+            // วันแรกสุดจาก history (logs ที่โหลดมา)
+            let earliest = null;
+            for (let k in data.history) {
+                if (/^\d{4}-\d{2}-\d{2}$/.test(k)) {
+                    if (!earliest || k < earliest) earliest = k;
+                }
+            }
+            const cfg = (data.startDate && /^\d{4}-\d{2}-\d{2}$/.test(data.startDate)) ? data.startDate : null;
+            // เลือกวันที่เก่าที่สุดระหว่าง config.startDate กับวันแรกของ logs
+            let resolved = null;
+            if (cfg && earliest) resolved = (cfg < earliest) ? cfg : earliest;
+            else resolved = cfg || earliest || todayStr;
+
+            if (data.startDate !== resolved) {
+                data.startDate = resolved;
+                saveStorage(data);
+            }
+            // เขียน startDate ขึ้น config เฉพาะเมื่อ Sheet ยังไม่มีเลย (กันทับของเดิม)
+            if (!cfg && cloudEnabled()) {
+                postAction({ action: 'config', key: 'startDate', value: resolved, date: new Date().toISOString() });
+            }
         }
 
         function renderFromState() {
@@ -587,6 +614,7 @@
             if (data.moodHistory && data.moodHistory[todayStr]) setMood(data.moodHistory[todayStr], false);
             if (data.notesHistory && data.notesHistory[todayStr]) noteInput.value = data.notesHistory[todayStr];
             updateSavedBadges();
+            updateCbtIndicator();
 
             if (data.assessments[assessKey] === undefined) {
                 openAssessment();
@@ -1096,15 +1124,22 @@
                     let data = getStorage();
                     const history = {}, timestamps = {};
 
-                    // ★★ จุดแก้หลัก: normalize key ให้เป็น YYYY-MM-DD เสมอ
-                    //    เดิมใช้ l.date ("Thu Jul 09 2026 ...") ตรงๆ ทำให้ key
-                    //    ไม่ตรงกับ todayStr ("2026-07-09") => นับได้ 0 ทุกครั้ง
+                    // หา timestamp จริง (ISO เต็มที่มีเวลา) จากทุก field ที่เป็นไปได้
+                    //   ข้อมูลเก่าบางแถวเลื่อนคอลัมน์ (timestamp ไปตกช่อง log_id) จึงต้องเช็คหลาย field
+                    //   ถ้าเจอ ISO เต็ม -> ใช้เป็น timestamp (มีเวลา -> กราฟรายชม.ถูก)
+                    //   ถ้าไม่เจอ -> ใช้ date ล้วน (กราฟจะกองที่ชม.0 เฉพาะแถวเก่าที่ไม่มีเวลาจริง)
+                    function fullISO(v) {
+                        const s = String(v || '');
+                        return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s) ? s : null;
+                    }
                     (remote.logs || []).forEach(function(l){
-                        const d = normalizeDateKey(l.ts) || normalizeDateKey(l.date);
+                        const isoTs = fullISO(l.ts) || fullISO(l.id) || fullISO(l.date);
+                        const dateOnly = normalizeDateKey(l.date) || normalizeDateKey(l.ts) || normalizeDateKey(l.id);
+                        const d = normalizeDateKey(isoTs) || dateOnly;
                         if (!d) return;
                         history[d] = (history[d] || 0) + 1;
                         if (!timestamps[d]) timestamps[d] = [];
-                        timestamps[d].push(l.ts);
+                        timestamps[d].push(isoTs || (d + 'T00:00:00.000Z'));
                     });
 
                     // ★★ จุดแก้ที่ 2: เขียนทับข้อมูลในเครื่องเฉพาะเมื่อ Sheet มี log จริง
@@ -1161,10 +1196,18 @@
             return Math.max([24,42,60][fBand], [24,42,60,78][eBand]);
         }
 
-        // แปลง ISO timestamp -> ชั่วโมงท้องถิ่น 0-23
+        // แปลง ISO timestamp -> ชั่วโมง 0-23 ตามเวลาไทย (GMT+7) เสมอ
+        //   ไม่พึ่ง timezone ของเครื่อง เพื่อให้กราฟรายชั่วโมงตรงกับเวลาจริงที่สูบ
         function hourOf(ts) {
             const d = new Date(ts);
-            return isNaN(d.getTime()) ? null : d.getHours();
+            if (isNaN(d.getTime())) return null;
+            // ถ้าเป็น ISO ที่ลงท้าย Z (UTC) -> บวก 7 ชม.ให้เป็นเวลาไทย
+            const s = String(ts);
+            if (/Z$|[+-]\d{2}:?\d{2}$/.test(s)) {
+                return (d.getUTCHours() + 7) % 24;
+            }
+            // ถ้าไม่มี timezone (เวลาท้องถิ่นอยู่แล้ว) ใช้ตามที่ parse ได้
+            return d.getHours();
         }
 
         // นับความถี่ตามชั่วโมงจาก array ของ date keys
@@ -2037,22 +2080,13 @@
             const data = getStorage();
             data.cbtHistory = data.cbtHistory || {};
             (data.cbtHistory[todayStr] = data.cbtHistory[todayStr] || []).push(cbtRecord);
+            saveStorage(data);
             const trigLabel = (CBT_TRIGGERS.find(function(t){return t.id===cbtRecord.trigger;})||{}).label || cbtRecord.trigger || '?';
             const timeLabel = new Date(cbtRecord.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-            // (A) human-readable one-liner appended to notes = backup ที่อ่านได้แม้ยังไม่มี sheet 'cbt'
-            const line = '[CBT ' + timeLabel + '] '
-                + 'trigger: ' + trigLabel
-                + '; urge ' + cbtRecord.intensity + '\u2192' + cbtRecord.afterIntensity
-                + (cbtRecord.action ? '; action: ' + cbtRecord.action : '');
-            const prev = (data.notesHistory && data.notesHistory[todayStr]) ? data.notesHistory[todayStr] : '';
-            data.notesHistory = data.notesHistory || {};
-            data.notesHistory[todayStr] = prev ? (prev + '\n' + line) : line;
-            saveStorage(data);
-            if (noteInput) noteInput.value = data.notesHistory[todayStr];
-            if (typeof updateSavedBadges === 'function') updateSavedBadges();
-            postAction({ action: 'meta', date: todayStr, mood: (data.moodHistory && data.moodHistory[todayStr] || ''), note: data.notesHistory[todayStr] });
-            // (B) structured payload -> เขียนลง sheet 'cbt' แยกเป็นคอลัมน์ (ง่ายต่อการวิเคราะห์)
-            //     GAS ที่ยังไม่รองรับ action นี้จะ ignore ทิ้งไปเอง ไม่กระทบข้อมูลเดิม
+            // CBT ไม่ยุ่งกับ note ของผู้ใช้อีกต่อไป -> เก็บใน cbtHistory (เครื่อง) + ส่ง sheet 'cbt' แยกคอลัมน์เท่านั้น
+            updateCbtIndicator();
+            // structured payload -> เขียนลง sheet 'cbt' แยกเป็นคอลัมน์ (ง่ายต่อการวิเคราะห์)
+            //   GAS ที่ยังไม่รองรับ action นี้จะ ignore ทิ้งไปเอง ไม่กระทบข้อมูลเดิม
             postAction({
                 action: 'cbt',
                 date: todayStr,
@@ -2067,6 +2101,20 @@
                 reframe: cbtRecord.reframe || '',
                 action_taken: cbtRecord.action || ''
             });
+        }
+
+        // ตัวนับเล็กๆ: วันนี้ทำ CBT loop ไปกี่ครั้ง (แสดงข้างปุ่ม "Work through a craving")
+        function updateCbtIndicator() {
+            const data = getStorage();
+            const n = (data.cbtHistory && data.cbtHistory[todayStr]) ? data.cbtHistory[todayStr].length : 0;
+            const el = document.getElementById('cbtCountBadge');
+            if (!el) return;
+            if (n > 0) {
+                el.innerText = n + '\u00d7 today';
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
         }
 
         function openCbt() {
