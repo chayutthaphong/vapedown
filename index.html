@@ -847,7 +847,7 @@
         // ===== INTERVAL / PACING + BINGE DETECTION ENGINE =====
         const SESSION_GAP_MS = 2 * 60 * 1000;   // puff ห่าง < 2 นาที = session เดียว
         const BINGE_CAP = 3;                     // เพดานแข็งของเกณฑ์ binge (hybrid)
-        const WAKE_START = 7, WAKE_END = 23;     // ช่วงตื่น (ไม่เด้ง timer นอกช่วงนี้)
+        const WAKE_START = 0, WAKE_END = 24;     // การ์ด interval ทำงานตลอด 24 ชม. (ไม่ซ่อนตามช่วงเวลา)
         let intervalTicker = null;
 
         // รวม timestamps ทั้งหมด (ทุกวัน) เรียงจากเก่า->ใหม่
