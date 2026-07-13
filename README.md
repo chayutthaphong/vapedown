@@ -1,6 +1,6 @@
 # Step Down — Clinical Vape Tapering Tracker
 
-**Step Down** is a single-file web app that helps people quit or reduce closed-system (pod) e-cigarette use. Because pre-filled pods can't be diluted, the app works through **behavioural frequency modification** — logging every puff, setting a quit-oriented daily ceiling, and stepping it down to zero over a chosen program length. It records data locally and syncs to Google Sheets, and presents progress through Daily, Weekly, and Monthly reports.
+**Step Down** is a single-file web app that helps people quit or reduce closed-system (pod) e-cigarette use. Because pre-filled pods can't be diluted, the app works through **behavioural frequency modification** — logging every puff, setting a quit-oriented daily ceiling, and stepping it down to zero over a chosen program length. Alongside the numbers, it adds **real-time craving support**: an interval/pacing timer with binge detection, a guided 6-step CBT loop, and a coping-plan library. It records data locally and syncs to Google Sheets, and presents progress through Daily, Weekly, and Monthly reports.
 
 > **Disclaimer:** This tool is a framework for personal data collection and longitudinal tracking. It is not medical advice, diagnosis, or behavioural therapy. Please consult a healthcare professional for personalised guidance.
 
@@ -13,10 +13,14 @@
 - [Dependence assessment](#dependence-assessment)
 - [The weekly ceiling](#the-weekly-ceiling)
 - [The dynamic daily challenge](#the-dynamic-daily-challenge)
+- [Interval / pacing timer & binge detection](#interval--pacing-timer--binge-detection)
+- [Working through a craving (CBT loop)](#working-through-a-craving-cbt-loop)
+- [Coping plan library](#coping-plan-library)
 - [Reports](#reports)
 - [Date picker (historical viewing)](#date-picker-historical-viewing)
 - [Heat-coloured percentages](#heat-coloured-percentages)
 - [Mood & notes](#mood--notes)
+- [Evening reminder](#evening-reminder)
 - [Design philosophy](#design-philosophy)
 - [Google Sheets sync](#google-sheets-sync)
 - [Installation](#installation-github-pages)
@@ -32,9 +36,12 @@ At a glance, Step Down lets a user:
 - Log each puff (individually or in batches) with a real timestamp
 - Take a weekly nicotine-dependence assessment (FTND + Penn State ECDI)
 - See two targets side by side every day: a fixed **weekly ceiling** and a tighter **dynamic daily challenge**
+- Get a live **pacing timer** that widens the gap between puffs and flags **binges**
+- Defuse an urge in the moment with a guided **6-step CBT loop** and an **urge-surf timer**
+- Browse a **coping-plan library** of evidence-based craving strategies
 - Track consumption over time in **Daily / Weekly / Monthly** report tabs
 - Scroll back through history with a **date picker**
-- Record daily **mood** and free-text **triggers/notes**
+- Record overall daily **mood** and free-text **triggers/notes**
 - Sync everything to **Google Sheets**, with a local fallback when offline
 
 ---
@@ -114,6 +121,73 @@ The two targets play different roles: the **ceiling guarantees a minimum rate of
 
 ---
 
+## Interval / pacing timer & binge detection
+
+Below the log buttons, a live card shows **the earliest time you should take your next puff** — turning "cut down" into a concrete, moment-to-moment target. It only appears during waking hours (**07:00–23:00**) and once there's at least one logged puff.
+
+### Base interval
+
+The base gap is learned from **your own** recent behaviour:
+
+```
+base interval (min) = mean real inter-session gap over the last 7 days × 1.1
+```
+
+Puffs less than **2 minutes** apart are treated as one continuous *session*, so those tiny within-session gaps are **excluded** from the average — otherwise a rapid burst would collapse the interval toward zero. With too little data (fewer than 5 inter-session gaps), it falls back to spreading today's **challenge** evenly across the 16-hour waking window.
+
+### Session & binge detection
+
+- **Session size** = how many recent puffs are chained together with < 2 min gaps.
+- **Binge threshold** = `min( 3, round(average session size) + 1 )`. It's a *hybrid*: it can **learn downward** (if your typical session is a single puff, the threshold tightens to 2) but is **hard-capped at 3**, so a run of habitual large sessions can never quietly normalise a high bar.
+- A session **over the threshold** is flagged as a binge — the card turns red and explains that many puffs in a row deliver a nicotine spike comparable to several separate uses.
+
+### Interval expansion
+
+When you're bingeing or in a heavy-use hour, the required gap stretches:
+
+```
+multiplier = 1 + 0.5 × max(0, sessionSize − threshold)
+if current hour is a personal peak hour: multiplier ×= 1.3
+next allowed time = last puff + baseInterval × multiplier
+```
+
+A progress bar fills as the interval elapses, with a live countdown. Colours: **indigo** while waiting, **green** once you may pace a puff, **red** during a flagged binge.
+
+### Early-log nudge & urge surfing
+
+Logging **before** the interval is up isn't blocked — the app is supportive, not punitive — but it gently notes how many minutes early you were and offers a **5-minute urge-surf timer** (a countdown that helps you ride the craving's peak, which usually fades within a few minutes).
+
+---
+
+## Working through a craving (CBT loop)
+
+The **🧠 Work through a craving** button opens a guided **6-step** worksheet based on standard cognitive-behavioural craving management. It walks you from the automatic reach-for-the-pod to a considered choice:
+
+1. **Notice the urge** — pick the trigger (stress/anxiety, boredom, others vaping/offered, a habit cue like coffee/meal/drive, low mood, or physical withdrawal). *Required to continue.*
+2. **Catch the thought** — free-text the automatic thought the craving is using (e.g. "I can't cope without it").
+3. **Rate the craving** — a 0–10 slider for the strength of **this urge right now** (explicitly *not* your overall daily mood). Naming the number itself loosens its grip.
+4. **Talk back to it** — tap a ready-made reframe or write your own kinder, truer response.
+5. **Pick a coping action** — suggestions are **tailored to the trigger you chose**, with a link into the full coping library. *Required to continue.*
+6. **Re-rate the urge** — score it again; the app shows the change and responds accordingly (encouragement if it dropped, a nudge to try another action or step away from the cue if it held or rose).
+
+**What gets saved:** each completed loop is stored as a structured record in a local `cbtHistory[date]` array, **and** a compact one-line summary is appended to that day's notes, e.g.:
+
+```
+[CBT 14:12] trigger: Stress / anxiety; urge 8→4; action: Paced breathing (4–6)
+```
+
+Because that line lives in the existing notes field, it **syncs to Google Sheets with no Apps Script or schema change**. The richer `cbtHistory` structure stays on-device and is never overwritten by the sync merge.
+
+---
+
+## Coping plan library
+
+The **📄 Coping plans** button opens a filterable library of **12** evidence-based craving strategies, grounded in CBT for smoking cessation — the "4 Ds" (delay, deep-breathe, drink water, distract), urge surfing, stimulus control, and trigger decoupling. Tap any plan to expand a short how-to.
+
+Filter by trigger category: **Stress / low mood · Boredom · Social / others vaping · Habit / routine · Withdrawal**. The library is reachable directly from the main screen or from step 5 of the CBT loop, and the CBT loop pre-filters it to match your selected trigger.
+
+---
+
 ## Reports
 
 Three switchable tabs, each anchored to the date chosen in the picker (defaults to today). All hourly charts are line charts (x = hour of day, y = puffs/hour).
@@ -174,10 +248,16 @@ Any "% of ceiling" or "% of challenge" figure is colour-graded so risk is visibl
 
 ## Mood & notes
 
-- **Daily mood** — a 5-point emoji scale (Awful → Great)
-- **Clinical notes / triggers** — a free-text field for recording cravings, triggers, or withdrawal symptoms
+- **Overall mood today** — a 5-point emoji scale (Awful → Great) capturing how you feel about the **day as a whole**. This is deliberately distinct from the 0–10 craving rating inside the CBT loop; the UI labels and a helper line make the difference explicit so the two aren't confused.
+- **Clinical notes / triggers** — a free-text field for recording cravings, triggers, or withdrawal symptoms. Completed CBT loops also append their one-line summaries here.
 
 Both are stored per day and synced to Google Sheets.
+
+---
+
+## Evening reminder
+
+An optional daily check-in (**21:30**) nudges you to log the day's mood and notes if you haven't yet. When enabled it can raise a browser notification (with permission) and shows an in-app banner. It never fires once you've already logged mood or a note for the day, and it can be dismissed for the day.
 
 ---
 
@@ -187,6 +267,7 @@ The ceiling is a **hard limit, not a target to fill**. The app is deliberately q
 
 - Baselines are set **far below real-world use**
 - In-app messaging never says "you have puffs left to use." It uses a **health-warning + challenge** tone — reminding the user that every avoided puff spares the lungs more nicotine and toxicants, and challenging them to beat the daily target
+- The pacing timer, CBT loop, and coping library shift the app from passive counting toward **active craving management** — spacing puffs out, decoupling triggers, and defusing urges in the moment
 - Percentages turn hotter as consumption nears or passes the limit
 - The ceiling steps down to **0 (quit)** in the final week
 - When behavioural reduction alone stalls, in-app feedback points to clinical practice guidelines (USPSTF 2021; German S3 2022) recommending approved cessation medication plus counselling
@@ -204,13 +285,13 @@ The app talks to a Google Apps Script (GAS) web app bound to a Google Sheet.
 
 - **On app open** — `doGet` returns JSON (`logs`, `assessments`, `config`, `mood`, `notes`); the app counts daily puffs from `logs`
 - **On each logged puff (incl. +3 / +5)** — `doPost` writes a new log row immediately, one per puff
-- **Also synced** — assessments, mood/notes, and program settings
+- **Also synced** — assessments, mood/notes, and program settings. CBT loop summaries ride along inside the notes field, so **no GAS changes are needed** to capture them.
 
 **Dates:** handled as `YYYY-MM-DD` strings throughout — for the sheet's `date`, `timestamp`, and `config.startDate`, and when comparing assessment dates to the report anchor. This string-based comparison avoids timezone drift (a UTC `Date` can land on the wrong local day), which otherwise made counts and dependence values disappear.
 
 > **Timezone caveat:** `timestamp` is UTC. Used in the evening (GMT+07:00), the date derived from UTC may roll over to the next day. To anchor strictly to local (Thai) time, use the `date` column from GAS instead.
 
-**Offline:** all data is mirrored in `localStorage`, so the app keeps working without a connection and re-syncs when it returns.
+**Offline:** all data is mirrored in `localStorage` (key `clinical_vape_tracker_v4`), so the app keeps working without a connection and re-syncs when it returns. The local-only `cbtHistory` structure is preserved across syncs.
 
 ---
 
@@ -222,7 +303,7 @@ The app talks to a Google Apps Script (GAS) web app bound to a Google Sheet.
 
 It's a single self-contained HTML file loading Tailwind and Chart.js via CDN — no build step.
 
-> **After pushing an update:** GitHub Pages may serve a cached copy. Wait for the deploy to finish, then hard-refresh or append a cache-buster to the URL (e.g. `?v=17`).
+> **After pushing an update:** GitHub Pages may serve a cached copy. Wait for the deploy to finish, then hard-refresh or append a cache-buster to the URL (e.g. `?v=18`).
 
 > **Note on baselines:** ceiling baselines (24 / 42 / 60 / 78) are computed **client-side** from the FTND/ECDI scores; they are not stored in the Sheet. Updating the app code takes effect on reload — no need to re-take the assessment.
 
@@ -235,9 +316,10 @@ The full reference list (Vancouver style) is in the app's **Disclaimer & Referen
 - **Dependence assessment instruments** — FTND (Heatherton 1991), Penn State ECDI (Foulds 2015)
 - **Consumption / frequency benchmarks** — EMIT study (Tillery 2023, POD ~123 puffs/day), Yingst 2020, Kosmider 2018 (~156 puffs/day), Aherrera 2020 (~365 puffs/day, MOD/tank users)
 - **Tapering strategy & program length** — Cochrane review (Lindson 2019), Lindson-Hawley 2016, Skelton 2022 (gradual arm: 25% reduction over 4 weeks), RedPharm (Farley 2017; 4- vs 16-week reduction, participants stayed ~6 weeks on average), Cinciripini 2023
+- **Craving management** — the interval-extension, urge-surfing, stimulus-control, and trigger-decoupling strategies draw on established CBT for smoking cessation (the "4 Ds" and relapse-prevention literature)
 - **Clinical practice guidelines** — USPSTF 2021 (JAMA), German S3 Tobacco Guideline (Batra 2022)
 
-> Real-world usage figures describe actual behaviour, not safe limits. The ceiling values, daily-challenge formula, and linear taper schedule are pragmatic design choices informed by the literature above, not validated dosing protocols.
+> Real-world usage figures describe actual behaviour, not safe limits. The ceiling values, daily-challenge formula, linear taper schedule, and the interval/binge thresholds are pragmatic design choices informed by the literature above, not validated dosing protocols.
 
 ---
 
