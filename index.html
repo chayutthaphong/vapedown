@@ -738,8 +738,7 @@
 
             document.getElementById('totalPuffs').innerText = total.toLocaleString();
             document.getElementById('journeyDayBadge').innerText = "\u00b7 Day " + dayNum;
-            // เฉลี่ย/วัน = ยอดสะสมทั้งหมด / จำนวนวันทั้งหมดตั้งแต่เริ่มติดตามถึงวันนี้
-            //   วันที่ไม่ได้สูบ (ไม่มี entry) ถือเป็น 0 puff และนับเป็นตัวหารด้วย
+            // เฉลี่ย/วัน = ยอดสะสมทั้งหมด / (วันปัจจุบัน - วันแรกที่เริ่มบันทึก + 1) = dayNum
             const avgEl = document.getElementById('journeyAvg');
             avgEl.innerText = dayNum > 0 ? Math.round(total / dayNum) : "\u2014";
 
@@ -1034,11 +1033,13 @@
             let data = getStorage();
             if (!data.timestamps[todayStr]) data.timestamps[todayStr] = [];
             for (let i = 0; i < n; i++) {
-                const ts = new Date().toISOString();
+                const now = new Date();
+                const ts = now.toISOString();
+                const timeLocal = now.toLocaleTimeString('en-GB', { hour12: false }); // HH:MM:SS เวลาท้องถิ่น (GMT+7)
                 const logId = generateUniqueID();
                 data.history[todayStr] = (data.history[todayStr] || 0) + 1;
                 data.timestamps[todayStr].push(ts);
-                postAction({ action: 'log', id: logId, ts: ts, date: todayStr });
+                postAction({ action: 'log', id: logId, ts: ts, date: todayStr, time: timeLocal });
             }
             saveStorage(data);
             snapToToday();

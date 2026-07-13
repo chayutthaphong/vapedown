@@ -280,7 +280,7 @@ The ceiling is a **hard limit, not a target to fill**. The app is deliberately q
 The app talks to a Google Apps Script (GAS) web app bound to a Google Sheet.
 
 - Set `GAS_URL` in `index.html` to your GAS deployment URL
-- The `logs` sheet uses the columns: `log_id`, `timestamp` (ISO), `date`
+- The `logs` sheet uses the columns: `log_id`, `timestamp` (ISO / UTC), `date` (`YYYY-MM-DD`), `time` (`HH:MM:SS`, local GMT+7)
 
 **Data flow:**
 
