@@ -161,7 +161,9 @@ multiplier(size) = 1 + 0.5 × max(0, size − threshold), then ×1.3 more if tha
 
 In practice: binge 5 puffs and you're told to wait, say, 2 hours. Puff 2 more within the wait window and the 2 hours **doesn't restart from zero and doesn't just vanish** — since that session is within threshold, the standing 2-hour deadline carries through unchanged. Binge again (another 5+ puff session) while time is still owed, and the new binge's own required wait is added on top of whatever was left, pushing the deadline further out. Once the original deadline has actually elapsed, a fresh session is judged purely on its own size — nothing carries over indefinitely. A long break (over 4 hours between sessions) is treated as genuine recovery and also clears any carried-over deadline, so accumulation never spans across sleep or a multi-hour gap.
 
-A progress bar fills as the interval elapses, with a live countdown. Colours: **indigo** while waiting, **green** once you may pace a puff, **red** while a binge — current or still carrying over from a recent one — governs the wait.
+A progress bar fills as the interval elapses, with a live countdown — shown in minutes and seconds under an hour (e.g. "45m 12s"), or hours and minutes once past 60 minutes (e.g. "2h 28m") so long waits stay easy to read at a glance. Colours: **indigo** while waiting, **green** once you may pace a puff, **red** while a binge — current or still carrying over from a recent one — governs the wait.
+
+A small pill badge under the countdown always shows whether the **current hour** is one of your personal heavier-use hours (⚡ "One of your heavier-use hours") or not (○ "Lighter-use hour for you") — updated live every second based on your own 7-day pattern, so you can notice the pattern in real time rather than only after the fact in a report.
 
 ### Early-log nudge & urge surfing
 

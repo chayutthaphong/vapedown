@@ -144,6 +144,12 @@
             </div>
             <p class="text-xs mt-2 font-medium" id="intervalCountdown">&mdash;</p>
             <p class="text-[10px] mt-1" id="intervalHint"></p>
+            <div class="mt-2 flex justify-center">
+                <span id="intervalPeakNow" class="inline-flex items-center gap-1 text-[10px] font-medium px-2.5 py-1 rounded-full transition-colors">
+                    <span id="intervalPeakNowIcon"></span>
+                    <span id="intervalPeakNowText"></span>
+                </span>
+            </div>
             <button id="urgeSurfBtn" class="hidden mt-2 text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 underline">Start 5-min urge surf</button>
         </div>
 
@@ -942,8 +948,10 @@
         function multiplierForSession(size, thr, atTs) {
             const extra = Math.max(0, size - thr);
             let mult = 1 + 0.5 * extra;
-            const h = new Date(atTs).getHours();
-            if (isPeakHour(h)) mult *= 1.3;
+            // ใช้ hourOf() (แปลงเป็นเวลาไทยเสมอ) ไม่ใช่ getHours() ที่อิง timezone เครื่อง user
+            //   กันไม่ให้ multiplier เพี้ยนถ้าเครื่อง user ตั้ง timezone ไม่ใช่ไทย
+            const h = hourOf(atTs);
+            if (h !== null && isPeakHour(h)) mult *= 1.3;
             return mult;
         }
 
@@ -1026,7 +1034,15 @@
         function fmtCountdown(ms) {
             if (ms <= 0) return "ready";
             const totalSec = Math.round(ms/1000);
-            const m = Math.floor(totalSec/60), s = totalSec%60;
+            const totalMin = Math.floor(totalSec/60);
+            const s = totalSec % 60;
+            if (totalMin >= 60) {
+                // เกิน 60 นาที -> แสดงเป็นชั่วโมง + นาทีที่เหลือ (อ่านง่ายกว่านาทีล้วนเลขเยอะๆ)
+                const h = Math.floor(totalMin/60);
+                const m = totalMin % 60;
+                return h + "h " + m + "m";
+            }
+            const m = totalMin;
             return (m>0? m+"m " : "") + (s<10&&m>0?"0":"") + s + "s";
         }
 
@@ -1047,6 +1063,29 @@
 
             nextTime.innerText = fmtClock(info.time);
             countdown.innerText = remaining > 0 ? fmtCountdown(remaining) + " remaining" : "You can pace a puff now";
+
+            // สถานะ "ตอนนี้กำลังอยู่ใน peak hour ของตัวเองไหม" — เช็คจากเวลาปัจจุบันสด (ไม่ใช่ชั่วโมงของ puff ล่าสุด)
+            //   ต่างจาก info.peak ที่ใช้ตอนคำนวณ multiplier (ยึดชั่วโมงตอน puff เกิดขึ้น เพื่อความคงที่ของสูตร)
+            //   ตัวนี้มีไว้แจ้งผู้ใช้ ณ ขณะนี้เท่านั้น จึงต้องอัปเดตสดตามเวลาจริงที่กำลังรอผ่านไป
+            //   สำคัญ: ต้องใช้ "ชั่วโมงไทย" แบบเดียวกับที่ hourHistogram/isPeakHour ใช้เก็บข้อมูล (UTC+7)
+            //   ไม่ใช่ new Date().getHours() ซึ่งอิงตาม timezone ของเครื่อง user (อาจไม่ตรงกับไทยถ้าตั้งเครื่องเป็นโซนอื่น)
+            //   แสดงทั้ง 2 สถานะเสมอ (peak / ไม่ peak) เพื่อให้ผู้ใช้สังเกตพฤติกรรมตัวเองได้ต่อเนื่อง ไม่ใช่แค่ตอนเตือน
+            const peakNowEl = document.getElementById('intervalPeakNow');
+            const peakNowIcon = document.getElementById('intervalPeakNowIcon');
+            const peakNowText = document.getElementById('intervalPeakNowText');
+            if (peakNowEl && peakNowIcon && peakNowText) {
+                const currentThaiHour = (new Date().getUTCHours() + 7) % 24;
+                const nowIsPeak = isPeakHour(currentThaiHour);
+                if (nowIsPeak) {
+                    peakNowEl.className = "inline-flex items-center gap-1 text-[10px] font-medium px-2.5 py-1 rounded-full transition-colors bg-amber-50 text-amber-700 border border-amber-200";
+                    peakNowIcon.innerText = "\u26A1";
+                    peakNowText.innerText = "One of your heavier-use hours";
+                } else {
+                    peakNowEl.className = "inline-flex items-center gap-1 text-[10px] font-medium px-2.5 py-1 rounded-full transition-colors bg-gray-50 text-gray-400 border border-gray-100";
+                    peakNowIcon.innerText = "\u25CB";
+                    peakNowText.innerText = "Lighter-use hour for you";
+                }
+            }
 
             // progress bar
             const total = info.mins * 60000;
@@ -1263,12 +1302,16 @@
             return Math.max([24,42,60][fBand], [24,42,60,78][eBand]);
         }
 
-        // แปลง ISO timestamp -> ชั่วโมง 0-23 ตามเวลาไทย (GMT+7) เสมอ
-        //   ไม่พึ่ง timezone ของเครื่อง เพื่อให้กราฟรายชั่วโมงตรงกับเวลาจริงที่สูบ
+        // แปลง timestamp (ISO string หรือ ms-epoch number) -> ชั่วโมง 0-23 ตามเวลาไทย (GMT+7) เสมอ
+        //   ไม่พึ่ง timezone ของเครื่อง เพื่อให้กราฟรายชั่วโมง/multiplier ตรงกับเวลาจริงที่สูบ
+        //   สำคัญ: ms-epoch number (เช่น s.lastTs จาก allTimestampsSorted) เป็น UTC โดยธรรมชาติของ JS เสมอ
+        //   จึงต้องแปลงเป็นไทยเหมือน ISO string ที่มี Z — ไม่ใช่แค่เช็ค regex บน string เท่านั้น
         function hourOf(ts) {
             const d = new Date(ts);
             if (isNaN(d.getTime())) return null;
-            // ถ้าเป็น ISO ที่ลงท้าย Z (UTC) -> บวก 7 ชม.ให้เป็นเวลาไทย
+            if (typeof ts === 'number') {
+                return (d.getUTCHours() + 7) % 24;
+            }
             const s = String(ts);
             if (/Z$|[+-]\d{2}:?\d{2}$/.test(s)) {
                 return (d.getUTCHours() + 7) % 24;
